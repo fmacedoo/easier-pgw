@@ -1,9 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
 namespace WebViewFolderViewer
@@ -26,7 +21,7 @@ namespace WebViewFolderViewer
             Controls.Add(webView);
 
             string folderPath = Directory.GetCurrentDirectory();
-            string indexPath = Path.Combine(folderPath, "web", "index.html");
+            string indexPath = Path.Combine(folderPath, "public", "index.html");
             Console.WriteLine($"Path is {indexPath}");
 
             if (Directory.Exists(folderPath) && File.Exists(indexPath))
