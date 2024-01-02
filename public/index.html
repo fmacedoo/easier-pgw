@@ -9,11 +9,16 @@
     <h1>Production Mode - No bundle</h1>
     <input type="text" id="message" />
     <button onclick="go()">Test comm!</button>
+    <button onclick="executeTransaction()">Execute Transaction (INSTALL)!</button>
     
     <script type="text/javascript">
         function go() {
             const message = document.getElementById('message').value;
-            window.chrome.webview.hostObjects.picudo.ShowMessageBox(message);
+            window.chrome.webview.hostObjects.bridge.ShowMessageBox(message);
+        }
+
+        function executeTransaction() {
+            window.chrome.webview.hostObjects.bridge.ExecuteTransaction();
         }
     </script>
 </body>
