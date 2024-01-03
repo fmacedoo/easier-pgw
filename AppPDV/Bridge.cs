@@ -3,11 +3,13 @@ using System.Runtime.InteropServices;
 using PGW;
 using static PGW.Enums;
 using static PGW.CustomObjects;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace AppPDV
 {
     [ClassInterface(ClassInterfaceType.AutoDual)]
-	[ComVisible(true)]
+    [ComVisible(true)]
     public class Bridge
     {
         PGWLib pGWLib;
@@ -33,6 +35,8 @@ namespace AppPDV
             PW_Parameter param;
             E_PWCNF transactionStatus;
 
+            Console.WriteLine("Setting Parameters");
+
             int autCap = (int)E_PWAutCapabilities.FIXO + (int)E_PWAutCapabilities.CUPOMRED + (int)E_PWAutCapabilities.CUPOMDIF
                 + (int)E_PWAutCapabilities.DSPCHECKOT + (int)E_PWAutCapabilities.DSPQRCODE;
             PW_Parameter[] parameters = {
@@ -43,16 +47,18 @@ namespace AppPDV
                 new PW_Parameter(E_PWINFO.PWINFO_DSPQRPREF.ToString(), (int)E_PWINFO.PWINFO_DSPQRPREF, ((int)E_PWQrcodePref.CHECKOUT).ToString()),
             };
 
+            Console.WriteLine("Starting Transaction");
             // Executa a transação
             ret = pGWLib.StartTransaction(operation, parameters.ToList());
 
+            Console.WriteLine("Getting Transaction Result");
             // Obtem todos os resultados da transação
             paramList = GetTransactionResult();
 
             // Caso a operação tenha sido cancelada, obtém a mensagem a ser exibida nesse caso
-            if(ret==(int)E_PWRET.PWRET_CANCEL)
+            if (ret == (int)E_PWRET.PWRET_CANCEL)
                 param = paramList.Find(item => item.parameterCode == (ushort)E_PWINFO.PWINFO_CNCDSPMSG);
-            else    
+            else
                 param = paramList.Find(item => item.parameterCode == (ushort)E_PWINFO.PWINFO_RESULTMSG);
 
             // Caso não seja possível obter uma mensagem de resultado da biblioteca, atribui uma padrão
@@ -77,7 +83,7 @@ namespace AppPDV
                     // a última seja resolvida
                     // A captura do que deve ser feita do usuário é somente um exemplo, é possível a automação
                     // obter essa informação em seu banco de dados e saber se a transação deve ser confirmada ou desfeita
-                    
+
                     // Obtem os identificadores da transação pendente
                     PW_Parameter authSyst, virtMerch, reqNum, autLocRef, autExtRef;
                     authSyst = paramList.Find(item => item.parameterCode == (ushort)E_PWINFO.PWINFO_PNDAUTHSYST);
@@ -93,12 +99,12 @@ namespace AppPDV
                         "PNDREQNUM={2}\n" +
                         "PNDAUTLOCREF={3}\n" +
                         "PNDAUTEXTREF={4}\n" +
-                        "Será necessário resolvê-la !!!", 
-                        authSyst==null ? "" : authSyst.parameterValue,
+                        "Será necessário resolvê-la !!!",
+                        authSyst == null ? "" : authSyst.parameterValue,
                         virtMerch == null ? "" : virtMerch.parameterValue,
                         reqNum == null ? "" : reqNum.parameterValue,
                         autLocRef == null ? "" : autLocRef.parameterValue,
-                        autExtRef == null ? "" : autExtRef.parameterValue));                    
+                        autExtRef == null ? "" : autExtRef.parameterValue));
 
                     // Pergunta ao usuário qual status de confirmação atribuir para a transação
                     transactionStatus = E_PWCNF.PWCNF_REV_ABORT;
@@ -138,7 +144,7 @@ namespace AppPDV
         private List<PW_Parameter> GetTransactionResult()
         {
             List<PW_Parameter> results = new List<PW_Parameter>();
-            
+
             // Obtem os resultado da biblioteca
             results = pGWLib.GetTransactionResult();
 
@@ -174,7 +180,7 @@ namespace AppPDV
             return results;
         }
 
-        private int ConfirmUndoTransaction(List<PW_Parameter> transactionResult, E_PWCNF transactionStatus, bool isPending=false)
+        private int ConfirmUndoTransaction(List<PW_Parameter> transactionResult, E_PWCNF transactionStatus, bool isPending = false)
         {
             int ret;
 

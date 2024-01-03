@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static PGW.CustomObjects;
 
-namespace PGW
+namespace PGW.Dll
 {
     public class Interop
     {

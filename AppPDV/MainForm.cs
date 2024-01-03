@@ -1,4 +1,5 @@
 using Microsoft.Web.WebView2.WinForms;
+using Name;
 
 namespace AppPDV
 {
@@ -32,7 +33,9 @@ namespace AppPDV
             {
                 await webView.EnsureCoreWebView2Async(null);
                 webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
-                webView.CoreWebView2.AddHostObjectToScript("bridge", new Bridge());
+                
+                var pgw = new PGWBrigde();
+                webView.CoreWebView2.AddHostObjectToScript("pgw", pgw);
                 // webView.CoreWebView2.OpenDevToolsWindow();
             }
             else

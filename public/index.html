@@ -9,7 +9,7 @@
     <h1>Production Mode - No bundle</h1>
     <input type="text" id="message" />
     <button onclick="go()">Test comm!</button>
-    <button onclick="executeTransaction()">Execute Transaction (INSTALL)!</button>
+    <button onclick="installation()">Execute Transaction (INSTALL)!</button>
     
     <script type="text/javascript">
         function go() {
@@ -17,8 +17,8 @@
             window.chrome.webview.hostObjects.bridge.ShowMessageBox(message);
         }
 
-        function executeTransaction() {
-            window.chrome.webview.hostObjects.bridge.ExecuteTransaction();
+        function installation() {
+            window.chrome.webview.hostObjects.pgw.Installation();
         }
     </script>
 </body>

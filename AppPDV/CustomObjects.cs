@@ -20,10 +20,7 @@ namespace PGW
                 return string.Format("{0}({1}): {2}", parameterName, parameterCode, parameterValue);
             }
 
-            public PW_Parameter()
-            {
-
-            }
+            public PW_Parameter() {}
 
             public PW_Parameter(string Name, ushort Code, string Value)
             {

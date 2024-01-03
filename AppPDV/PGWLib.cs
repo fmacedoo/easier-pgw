@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PGW.Dll;
 using static PGW.CustomObjects;
 using static PGW.Enums;
 
@@ -25,9 +26,9 @@ namespace PGW
             // de logs e arquivos
             int ret = Interop.PW_iInit(path);
 
-            // // Caso ocorra um erro no processo de inicialização da biblioteca, dispara uma exceção
-            // if (ret != (int)E_PWRET.PWRET_OK)
-            //     throw new System.Exception(string.Format("Erro {0} ao executar PW_iInit", ret.ToString()));
+            // Caso ocorra um erro no processo de inicialização da biblioteca, dispara uma exceção
+            if (ret != (int)E_PWRET.PWRET_OK)
+                throw new System.Exception(string.Format("Erro {0} ao executar PW_iInit", ret.ToString()));
         }
 
         #region MÉTODOS PUBLICOS
@@ -395,7 +396,7 @@ namespace PGW
 
             // Loop que só será interrompido em caso da finalização da transação, seja ela por algum
             // tipo de erro ou com o sucesso
-            for (; ; )
+            while (true)
             {
                 // Cria a estrutura necessária para executar a função PW_iExecTransac, caso seja 
                 // necessário capturar algum dado, essa estrutura terá detalhes de como deverá ser feita
