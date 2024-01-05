@@ -6,17 +6,20 @@ using PGW.Dll;
 using static PGW.CustomObjects;
 using static PGW.Enums;
 
-namespace Name
+namespace AppPDV
 {
     [ClassInterface(ClassInterfaceType.AutoDual)]
     [ComVisible(true)]
-    public class PGWBrigde
+    public partial class PGWBridge
     {
-        public PGWBrigde()
+        public PGWBridge()
         {
-            // Cria o diretório que será utilizado pela função PW_iInit
-            Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\PGWebLib\\");
+            // Define o diretório da lib
             string path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\PGWebLib\\";
+            Console.WriteLine($"Using lib path: {path}");
+
+            // Cria o diretório que será utilizado pela função PW_iInit
+            Directory.CreateDirectory(path);
 
             // Inicializa a biblioteca, indicando a pasta de trabalho a ser utilizada para gravação
             // de logs e arquivos
@@ -738,10 +741,13 @@ namespace Name
 
             if (result != 0)
             {
-                _ShowPendingTransaction(transactionResponse);
+                if (result == (int)E_PWRET.PWRET_FROMHOSTPENDTRN)
+                {
+                    _ShowPendingTransaction(transactionResponse);
 
-                E_PWCNF transactionStatus = E_PWCNF.PWCNF_REV_ABORT;
-                _ConfirmUndoPendingTransaction(transactionStatus, transactionResponse);
+                    E_PWCNF transactionStatus = E_PWCNF.PWCNF_REV_ABORT;
+                    _ConfirmUndoPendingTransaction(transactionStatus, transactionResponse);
+                }
             }
 
             PW_Parameter? confirmacaoNecessaria = transactionResponse.Find(item => item.parameterCode == (ushort)E_PWINFO.PWINFO_CNFREQ);

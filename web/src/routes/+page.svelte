@@ -2,14 +2,34 @@
 <script>
 	import { onMount } from 'svelte';
 
+    /**
+     * @typedef Product
+     * @property {number} id
+     * @property {string} name
+     * @property {number} price
+    */
+
+    /**
+     * @type {Array<Product>}
+     */
 	let products = [];
+
+    /**
+     * @type {Array<Product>}
+     */
 	let cart = [];
 
 	onMount(async () => {
-		const response = await fetch('http://localhost:1337/products');
-		products = await response.json();
+		products = [
+			{ id: 1, name: 'Product 1', price: 10.0 },
+			{ id: 2, name: 'Product 2', price: 15.0 }
+			// Add more products as needed
+		];
 	});
 
+    /**
+     * @param {Product} product
+     */
 	function addToCart(product) {
 		cart = [...cart, { id: product.id, name: product.name, price: product.price }];
 	}

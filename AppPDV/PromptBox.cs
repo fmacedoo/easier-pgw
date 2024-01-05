@@ -12,7 +12,7 @@ namespace PGW
                 Height = 300,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 Text = title,
-                StartPosition = FormStartPosition.CenterScreen
+                StartPosition = FormStartPosition.CenterScreen,
             };
 
             var label = new System.Windows.Forms.Label() { Left = 50, Top = 20, Width = 200, Text = prompt };
