@@ -1,21 +1,32 @@
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Transactions;
-using PGW;
 using PGW.Dll;
 using static PGW.CustomObjects;
 using static PGW.Enums;
 
 namespace AppPDV
 {
-    public partial class PGW
+    [ClassInterface(ClassInterfaceType.AutoDual)]
+    [ComVisible(true)]
+    public class PGW : IPGW
     {
         private readonly Interactions interactions;
 
-        public PGW()
+        public PGW(
+            OnMessageRaisingEventHandler onMessageRaising,
+            OnPromptConfirmationRaisingEventHandler onPromptConfirmationRaising,
+            OnPromptInputRaisingEventHandler onPromptInputRaising,
+            OnPromptMenuRaisingEventHandler onPromptMenuRaising
+        )
         {
             interactions = new Interactions(LoopPP);
+
+            interactions.MessageRaising += onMessageRaising;
+            interactions.PromptConfirmationRaising += onPromptConfirmationRaising;
+            interactions.PromptInputRaising += onPromptInputRaising;
+            interactions.PromptMenuRaising += onPromptMenuRaising;
+
+            Init();
         }
 
         public List<PW_Operations> GetOperations()
@@ -54,6 +65,15 @@ namespace AppPDV
             return returnList;
         }
 
+        public E_PWRET Installation()
+        {
+            Logger.Info("Installation");
+            E_PWRET result = Operation(E_PWOPER.PWOPER_INSTALL);
+
+            Logger.Debug($"Installation result: {result}");
+            return result;
+        }
+
         public E_PWRET Operation(E_PWOPER operation)
         {
             E_PWRET pendencyResult = PendencyResolve();
@@ -65,9 +85,6 @@ namespace AppPDV
                 return prepareResult;
 
             E_PWRET executeResult = ExecuteTransaction();
-            if (executeResult != E_PWRET.PWRET_OK)
-                return executeResult;
-
             List<PW_Parameter> transactionResponse = TransactionResponse();
 
             string message = ResolveTransactionResponse(executeResult, transactionResponse);
@@ -322,6 +339,8 @@ namespace AppPDV
 
         private string ResolveTransactionResponse(E_PWRET executeResult, List<PW_Parameter> transactionResponse)
         {
+            Logger.Info("ResolveTransactionResponse");
+
             PW_Parameter? param;
             // Caso a operação tenha sido cancelada, obtém a mensagem a ser exibida nesse caso
             if (executeResult == E_PWRET.PWRET_CANCEL)
@@ -330,10 +349,10 @@ namespace AppPDV
                 param = transactionResponse?.Find(item => item?.parameterCode == (ushort)E_PWINFO.PWINFO_RESULTMSG);
 
             // Caso não seja possível obter uma mensagem de resultado da biblioteca, atribui uma padrão
-            if (param != null)
-                return param.parameterValue.Replace("\r", "\n");
-            else
-                return "TRANSAÇÃO FINALIZADA";
+            string message = (param != null) ? param.parameterValue : "TRANSAÇÃO FINALIZADA";
+
+            Logger.Debug($"ResolveTransactionResponse: {message}");
+            return message.Replace("\r", "\n");
         }
 
         private E_PWRET LoopPP()
@@ -352,10 +371,10 @@ namespace AppPDV
                 // Caso tenha retornado uma mensagem para exibição, exibe
                 if (result == E_PWRET.PWRET_DISPLAY)
                 {
-                    var promptResult = interactions.RaisePrompt(displayMessage.ToString().TrimStart('\r').Replace("\r", "\n"));
+                    var promptResult = interactions.RaisePromptConfirmation(displayMessage.ToString().TrimStart('\r').Replace("\r", "\n"));
 
                     // Verifica se o operador abortou a operação no checkout
-                    if (promptResult == PromptResult.Cancel)
+                    if (promptResult == PromptConfirmationResult.Cancel)
                     {
                         // Aborta a operação em curso no PIN-pad
                         Interop.PW_iPPAbort();
@@ -518,6 +537,7 @@ namespace AppPDV
                 // Caso exista uma mensagem a ser exibida ao usuário antes da captura do dado
                 if (item.szMsgPrevia.Length > 0)
                 {
+                    Logger.Debug($"ShowAutomationUserInteraction: szMsgPrevia {item.szMsgPrevia}");
                     interactions.RaiseMessage(item.szMsgPrevia);
                 }
 
@@ -541,6 +561,8 @@ namespace AppPDV
 
         private void ShowAutomationPendingTransaction(List<PW_Parameter> transactionResponse)
         {
+            Logger.Info("ShowAutomationPendingTransaction");
+
             PW_Parameter? authSyst, virtMerch, reqNum, autLocRef, autExtRef;
             authSyst = transactionResponse.Find(item => item.parameterCode == (ushort)E_PWINFO.PWINFO_PNDAUTHSYST);
             virtMerch = transactionResponse.Find(item => item.parameterCode == (ushort)E_PWINFO.PWINFO_PNDVIRTMERCH);
@@ -562,6 +584,29 @@ namespace AppPDV
                 autExtRef == null ? "" : autExtRef.parameterValue);
             
             interactions.RaiseMessage(message);
+        }
+
+        private void Init()
+        {
+            // Define o diretório da lib
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\PGWebLib\\";
+            Console.WriteLine($"Using lib path: {path}");
+
+            // Cria o diretório que será utilizado pela função PW_iInit
+            Directory.CreateDirectory(path);
+
+            // Inicializa a biblioteca, indicando a pasta de trabalho a ser utilizada para gravação
+            // de logs e arquivos
+            E_PWRET ret = (E_PWRET)Interop.PW_iInit(path);
+
+            // Caso ocorra um erro no processo de inicialização da biblioteca, dispara uma exceção
+            if (ret != E_PWRET.PWRET_OK)
+                throw new Exception(string.Format("Erro {0} ao executar PW_iInit", ret.ToString()));
+        }
+
+        public E_PWRET installation()
+        {
+            return Installation();
         }
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.Web.WebView2.WinForms;
+using PGW;
 
 namespace AppPDV
 {
@@ -33,7 +34,12 @@ namespace AppPDV
                 await webView.EnsureCoreWebView2Async(null);
                 webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
                 
-                var pgw = new PGW();
+                IPGW pgw = new PGW(
+                    DefaultMessageRaisingHandler,
+                    DefaultPromptConfirmationRaisingHandler,
+                    DefaultPromptInputRaisingHandler,
+                    DefaultPromptMenuRaisingHandler
+                );
                 webView.CoreWebView2.AddHostObjectToScript("pgw", pgw);
                 // webView.CoreWebView2.OpenDevToolsWindow();
             }
@@ -46,6 +52,27 @@ namespace AppPDV
         private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
             webView?.Dispose();
+        }
+
+        private void DefaultMessageRaisingHandler(string message)
+        {
+            MessageBox.Show(message, "101");
+        }
+
+        private PromptConfirmationResult DefaultPromptConfirmationRaisingHandler(string message)
+        {
+            var result = PromptBox.ShowConfirmation("101", message);
+            return result ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
+        }
+
+        private string? DefaultPromptInputRaisingHandler(string message)
+        {
+            return PromptBox.Show("101", message);
+        }
+
+        private string? DefaultPromptMenuRaisingHandler(IEnumerable<string> options)
+        {
+            return PromptBox.ShowList("Escolha uma opção:", options);
         }
     }
 }

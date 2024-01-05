@@ -22,7 +22,6 @@ namespace AppPDV
                 { E_PWDAT.PWDAT_PPENCPIN, PPENCPIN },
                 { E_PWDAT.PWDAT_PPENTRY, PPENTRY },
                 { E_PWDAT.PWDAT_PPREMCRD, PPREMCRD },
-                { E_PWDAT.PWDAT_PPENCPIN, PPENCPIN },
             };
         }
 

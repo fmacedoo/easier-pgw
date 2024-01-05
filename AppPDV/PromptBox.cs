@@ -1,5 +1,3 @@
-using System.Reflection.Emit;
-
 namespace PGW
 {
     public static class PromptBox
@@ -15,7 +13,7 @@ namespace PGW
                 StartPosition = FormStartPosition.CenterScreen,
             };
 
-            var label = new System.Windows.Forms.Label() { Left = 50, Top = 20, Width = 200, Text = prompt };
+            Label label = new Label() { Left = 50, Top = 20, Width = 200, Text = prompt };
             TextBox textBox = new TextBox() { Left = 50, Top = 20 + 50, Width = 200 };
             Button confirmation = new Button() { Text = "OK", Left = 100, Width = 70, Top = 20 + 50 + 50, DialogResult = DialogResult.OK };
 
@@ -30,7 +28,33 @@ namespace PGW
             return promptForm.ShowDialog() == DialogResult.OK ? textBox.Text : null;
         }
 
-        public static string? ShowList(string prompt, List<string> options)
+        public static bool ShowConfirmation(string title, string message)
+        {
+            Form promptForm = new Form()
+            {
+                Width = 300,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = title,
+                StartPosition = FormStartPosition.CenterScreen
+            };
+
+            Label messageLabel = new Label() { Left = 50, Top = 20, Width = 200, Text = message };
+            Button okButton = new Button() { Text = "OK", Left = 50, Width = 70, Top = 70, DialogResult = DialogResult.OK };
+            Button cancelButton = new Button() { Text = "Cancel", Left = 130, Width = 70, Top = 70, DialogResult = DialogResult.Cancel };
+
+            promptForm.Controls.Add(messageLabel);
+            promptForm.Controls.Add(okButton);
+            promptForm.Controls.Add(cancelButton);
+
+            promptForm.AcceptButton = okButton;
+            promptForm.CancelButton = cancelButton;
+
+            return promptForm.ShowDialog() == DialogResult.OK;
+        }
+
+
+        public static string? ShowList(string prompt, IEnumerable<string> options)
         {
             Form promptForm = new Form()
             {

@@ -4,19 +4,12 @@ using static PGW.Enums;
 
 namespace AppPDV
 {
-    public enum PromptResult
-    {
-        OK,
-        Cancel,
-    }
-    
-    public delegate void OnMessageRaisingEventHandler(string message);
-    public delegate PromptResult OnPromptRaisingEventHandler(string message);
-
     public class Interactions
     {
         public event OnMessageRaisingEventHandler? MessageRaising;
-        public event OnPromptRaisingEventHandler? PromptRaising;
+        public event OnPromptConfirmationRaisingEventHandler? PromptConfirmationRaising;
+        public event OnPromptInputRaisingEventHandler? PromptInputRaising;
+        public event OnPromptMenuRaisingEventHandler? PromptMenuRaising;
 
         private readonly Dictionary<E_PWDAT, Func<PW_GetData, E_PWRET>> actions_map;
         private readonly PINPadInteractions pinPadInteractions;
@@ -45,7 +38,8 @@ namespace AppPDV
                 // Executa qualquer ação que não seja captura de dados do cartão (PWDAT_CARDINF) digitado (PW_GetData.ulTipoEntradaCartao = 1)
                 // Do contrário, não achando nenhuma ação ou tendo achando PWDAT_CARDINF porém lido pelo PIN-pad
                 // Deixa a execução para PINPadInteractions.
-                if (option != E_PWDAT.PWDAT_CARDINF || (option == E_PWDAT.PWDAT_CARDINF && data.ulTipoEntradaCartao == 1)) {
+                if (option != E_PWDAT.PWDAT_CARDINF || (option == E_PWDAT.PWDAT_CARDINF && data.ulTipoEntradaCartao == 1))
+                {
                     return action(data);
                 }
             }
@@ -58,27 +52,84 @@ namespace AppPDV
             MessageRaising?.Invoke(message);
         }
 
-        public PromptResult? RaisePrompt(string message)
+        public PromptConfirmationResult? RaisePromptConfirmation(string message)
         {
-            return PromptRaising?.Invoke(message);
+            return PromptConfirmationRaising?.Invoke(message);
         }
 
         private E_PWRET Input(PW_GetData data)
         {
-            return E_PWRET.PWRET_OK;
+            Logger.Info("Interactions.Input");
+
+            if (data.wIdentificador == (ushort)E_PWINFO.PWINFO_AUTHMNGTUSER)
+            {
+                // Exemplificando a captura de uma senha de lojista de até 4 dígitos
+                data.szPrompt = "INSIRA A SENHA DO LOJISTA";
+                data.bTamanhoMaximo = 4;
+            }
+            if (data.wIdentificador == (ushort)E_PWINFO.PWINFO_AUTHTECHUSER)
+            {
+                // Exemplificando a captura de uma senha de lojista de até 10 dígitos
+                data.szPrompt = "INSIRA A SENHA TÉCNICA";
+                data.bTamanhoMaximo = 10;
+            }
+
+            string? value = PromptInputRaising?.Invoke(data.szPrompt.Replace("\r", "\n"));
+
+            // Caso o usuário tenha abortado a transação, retorna E_PWRET.PWRET_CANCEL
+            if (value is null)
+            {
+                return E_PWRET.PWRET_CANCEL;
+            }
+
+            // Adiciona o dado capturado
+            E_PWRET result = (E_PWRET)Interop.PW_iAddParam(data.wIdentificador, value);
+
+            // Registra na janela de debug o resultado da adição do parâmetro
+            Logger.Debug(string.Format("Interactions.Input: PW_iAddParam({0},{1})={2}", ((E_PWINFO)data.wIdentificador).ToString(), value, result.ToString()));
+
+            return result;
         }
 
         private E_PWRET InputFromMenu(PW_GetData data)
         {
-            return E_PWRET.PWRET_OK;
+            Logger.Info("Interactions.InputFromMenu");
+
+            List<string> options = new List<string>();
+            for (byte b = 0; b < data.bNumOpcoesMenu; b++)
+            {
+                if (data.bTeclasDeAtalho == 1 && b < 10)
+                {
+                    options.Add(string.Format("{0}-{1}", b, data.vszTextoMenu[b].szTextoMenu));
+                }
+                else
+                {
+                    options.Add(string.Format("{0}", data.vszTextoMenu[b].szTextoMenu));
+                }
+            }
+
+            // Caso o menu só tenha uma opção e ela seja a opção default, seleciona automaticamente
+            // Caso ela não seja a opção defualt, necessário exibir para confirmação do usuário
+            var option = (data.bNumOpcoesMenu == 1 && data.bItemInicial == 0) ?
+                data.vszValorMenu[0].szValorMenu :
+                PromptMenuRaising?.Invoke(options);
+
+            if (option is null) return E_PWRET.PWRET_CANCEL;
+
+            E_PWRET result = (E_PWRET)Interop.PW_iAddParam(data.wIdentificador, option);
+
+            // Registra na janela de debug o resultado da adição do parâmetro
+            Logger.Debug(string.Format("Interactions.InputFromMenu: PW_iAddParam({0},{1})={2}", ((E_PWINFO)data.wIdentificador).ToString(), option, result.ToString()));
+
+            return result;
         }
 
         private E_PWRET Prompt(PW_GetData data)
         {
             var message = data.szPrompt;
-            var promptResult = PromptRaising?.Invoke(message);
+            var promptResult = PromptConfirmationRaising?.Invoke(message);
 
-            if (promptResult == PromptResult.Cancel)
+            if (promptResult == PromptConfirmationResult.Cancel)
             {
                 // Aborta a operação em curso no PIN-pad
                 Interop.PW_iPPAbort();
@@ -89,7 +140,7 @@ namespace AppPDV
                 // Retorna operação cancelada
                 return E_PWRET.PWRET_CANCEL;
             }
-            
+
             return E_PWRET.PWRET_OK;
         }
 
@@ -123,7 +174,7 @@ namespace AppPDV
             //     // Atribui o retorno de aoperação cancelada
             //     return (int)E_PWRET.PWRET_CANCEL;
             // }
-            
+
             // // Sinaliza a exibição do QRcode para a biblioteca
             // ret = Interop.PW_iAddParam(item.wIdentificador, "");
             // return (int)E_PWRET.PWRET_OK;
