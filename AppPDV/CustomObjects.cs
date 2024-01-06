@@ -11,9 +11,9 @@ namespace PGW
     {
         public class PW_Parameter
         {
-            public string parameterName;
+            public string? parameterName;
             public ushort parameterCode;
-            public string parameterValue;
+            public string? parameterValue;
 
             public override string ToString()
             {
