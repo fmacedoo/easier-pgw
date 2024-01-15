@@ -14,6 +14,7 @@ namespace AppPDV
 
             actions_map = new Dictionary<E_PWDAT, Func<ushort, E_PWRET>>
             {
+                { E_PWDAT.PWDAT_CARDINF, CARDINF },
                 { E_PWDAT.PWDAT_CARDOFF, CARDOFF },
                 { E_PWDAT.PWDAT_CARDONL, CARDONL },
                 { E_PWDAT.PWDAT_PPCONF, PPCONF },

@@ -31,7 +31,9 @@ namespace AppPDV
 
         public E_PWRET? Interact(PW_GetData data, ushort index)
         {
+            Logger.Info("Interact");
             E_PWDAT option = (E_PWDAT)data.bTipoDeDado;
+            Logger.Debug($"Interact: {Enum.GetName(typeof(E_PWDAT), option)}");
             if (actions_map.TryGetValue(option, out var action))
             {
                 // Executa qualquer ação que não seja captura de dados do cartão (PWDAT_CARDINF) digitado (PW_GetData.ulTipoEntradaCartao = 1)
