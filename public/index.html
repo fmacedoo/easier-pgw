@@ -9,7 +9,10 @@
     <h1>Production Mode - No bundle</h1>
     <input type="text" id="message" />
     <button onclick="go()">Test comm!</button>
-    <button onclick="installation()">Execute Transaction (INSTALL)!</button>
+    <button onclick="installation()">installation</button>
+    <button onclick="operations()">operations</button>
+    <button onclick="payment()">payment</button>
+    <pre id="result"></pre>
     
     <script type="text/javascript">
         function go() {
@@ -19,6 +22,15 @@
 
         function installation() {
             window.chrome.webview.hostObjects.pgw.installation();
+        }
+
+        async function operations() {
+            const result = await window.chrome.webview.hostObjects.pgw.operations();
+            document.getElementById('result').innerText = JSON.stringify(JSON.parse(result), null, 2);
+        }
+
+        function payment() {
+            window.chrome.webview.hostObjects.pgw.payment();
         }
     </script>
 </body>

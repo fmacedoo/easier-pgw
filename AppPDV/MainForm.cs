@@ -22,8 +22,9 @@ namespace AppPDV
             };
             Controls.Add(webView);
 
-            WindowState = FormWindowState.Maximized;
+            // WindowState = FormWindowState.Maximized;
             FormClosing += MainForm_FormClosing;
+            this.Size = new Size(width: 800, height: 600);
 
             string folderPath = Directory.GetCurrentDirectory();
             string indexPath = Path.Combine(folderPath, "public", "index.html");
@@ -34,7 +35,7 @@ namespace AppPDV
                 await webView.EnsureCoreWebView2Async(null);
                 webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
                 
-                IPGW pgw = new PGW(
+                PGWGateway pgw = new PGWGateway(
                     DefaultMessageRaisingHandler,
                     DefaultPromptConfirmationRaisingHandler,
                     DefaultPromptInputRaisingHandler,
@@ -67,6 +68,10 @@ namespace AppPDV
 
         private string? DefaultPromptInputRaisingHandler(string message)
         {
+            if (message == "INSIRA A SENHA TÉCNICA") return "314159";
+            if (message == "ID PONTO DE CAPTURA:") return "86629";
+            if (message == "CNPJ/CPF:") return "33.838.198/0001-36";
+            if (message == "NOME/IP SERVIDOR:") return "esba-hom01.tpgweb.io:17500";
             return PromptBox.Show("101", message);
         }
 

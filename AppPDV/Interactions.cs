@@ -26,7 +26,6 @@ namespace AppPDV
                 { E_PWDAT.PWDAT_CARDINF, Input },
                 { E_PWDAT.PWDAT_DSPCHECKOUT, Prompt },
                 { E_PWDAT.PWDAT_DSPQRCODE, QrCode },
-                { E_PWDAT.PWDAT_PPENCPIN, (aaa) => E_PWRET.PWRET_BLOCKED }
             };
         }
 
@@ -95,7 +94,7 @@ namespace AppPDV
         {
             Logger.Info("Interactions.InputFromMenu");
 
-            List<string> options = new List<string>();
+            var options = new List<string>();
             for (byte b = 0; b < data.bNumOpcoesMenu; b++)
             {
                 if (data.bTeclasDeAtalho == 1 && b < 10)
@@ -112,7 +111,7 @@ namespace AppPDV
             // Caso ela não seja a opção defualt, necessário exibir para confirmação do usuário
             var option = (data.bNumOpcoesMenu == 1 && data.bItemInicial == 0) ?
                 data.vszValorMenu[0].szValorMenu :
-                PromptMenuRaising?.Invoke(options);
+                data.vszValorMenu[options.IndexOf(PromptMenuRaising?.Invoke(options))].szValorMenu;
 
             if (option is null) return E_PWRET.PWRET_CANCEL;
 

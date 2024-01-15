@@ -13,7 +13,7 @@ namespace PGW
                 StartPosition = FormStartPosition.CenterScreen,
             };
 
-            Label label = new Label() { Left = 50, Top = 20, Width = 200, Text = prompt };
+            Label label = new Label() { Left = 10, Top = 20, Width = 280, Text = prompt, AutoSize = true };
             TextBox textBox = new TextBox() { Left = 50, Top = 20 + 50, Width = 200 };
             Button confirmation = new Button() { Text = "OK", Left = 100, Width = 70, Top = 20 + 50 + 50, DialogResult = DialogResult.OK };
 
@@ -80,7 +80,25 @@ namespace PGW
 
             promptForm.AcceptButton = confirmation;
 
-            return promptForm.ShowDialog() == DialogResult.OK ? listBox.SelectedItem?.ToString() : null;
+            return promptForm.ShowDialog() ==  DialogResult.OK ? listBox.SelectedItem?.ToString() : null;
+        }
+    }
+
+    public class ListItem
+    {
+        public string Key { get; set; }
+        public string Text { get; set; }
+
+        public ListItem(string key, string text)
+        {
+            Key = key;
+            Text = text;
+        }
+
+        // Override ToString() method to display the text in the ListBox
+        public override string ToString()
+        {
+            return Text;
         }
     }
 }

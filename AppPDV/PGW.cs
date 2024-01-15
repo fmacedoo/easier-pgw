@@ -1,5 +1,8 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using Microsoft.VisualBasic;
 using PGW.Dll;
 using static PGW.CustomObjects;
 using static PGW.Enums;
@@ -8,7 +11,7 @@ namespace AppPDV
 {
     [ClassInterface(ClassInterfaceType.AutoDual)]
     [ComVisible(true)]
-    public class PGW : IPGW
+    public class PGW
     {
         private readonly Interactions interactions;
 
@@ -248,7 +251,7 @@ namespace AppPDV
                     return pendencyWriteResult;
 
                 // Registra na janela de debug o resultado da execução
-                Logger.Debug(string.Format("ExecuteTransaction: PW_iExecTransac={0}", pw_iExecTransacResult.ToString()));
+                Logger.Debug(string.Format("ExecuteTransaction: PW_iExecTransac={0} numDados={1}", pw_iExecTransacResult.ToString(), numDados));
 
                 // Faz o tratamento correto de acordo com o retorno recebido em PW_iExecTransac
                 switch (pw_iExecTransacResult)
@@ -272,7 +275,7 @@ namespace AppPDV
 
                             return automationUserInteractionResult;
                         }
-
+                        Thread.Sleep(200);
                         break;
 
                     // Caso a biblioteca tenha retornado que existe uma transação pendente.
@@ -526,7 +529,7 @@ namespace AppPDV
 
             return result;
         }
-        
+
         private E_PWRET ShowAutomationUserInteraction(PW_GetData[] expectedData)
         {
             Logger.Info("ShowAutomationUserInteraction");
@@ -541,11 +544,48 @@ namespace AppPDV
                     interactions.RaiseMessage(item.szMsgPrevia);
                 }
 
-                if (item.bTipoDeDado == 0)
-                {
-                    Logger.Debug("ShowAutomationUserInteraction: Item com valor zerado.");
-                    return E_PWRET.PWRET_OK;
-                }
+                // if (item.bTipoDeDado == 0)
+                // {
+                //     Logger.Debug("ShowAutomationUserInteraction: Item com valor zerado.");
+
+                //     // var anonymousObject = new
+                //     // {
+                //     //     item.wIdentificador,
+                //     //     item.bTipoDeDado,
+                //     //     item.szPrompt,
+                //     //     item.bNumOpcoesMenu,
+                //     //     TextoMenu = Array.ConvertAll(item.vszTextoMenu, item => item.szTextoMenu),
+                //     //     ValorMenu = Array.ConvertAll(item.vszValorMenu, item => item.szValorMenu),
+                //     //     item.szMascaraDeCaptura,
+                //     //     item.bTiposEntradaPermitidos,
+                //     //     item.bTamanhoMinimo,
+                //     //     item.bTamanhoMaximo,
+                //     //     item.ulValorMinimo,
+                //     //     item.ulValorMaximo,
+                //     //     item.bOcultarDadosDigitados,
+                //     //     item.bValidacaoDado,
+                //     //     item.bAceitaNulo,
+                //     //     item.szValorInicial,
+                //     //     item.bTeclasDeAtalho,
+                //     //     item.szMsgValidacao,
+                //     //     item.szMsgConfirmacao,
+                //     //     item.szMsgDadoMaior,
+                //     //     item.szMsgDadoMenor,
+                //     //     item.bCapturarDataVencCartao,
+                //     //     item.ulTipoEntradaCartao,
+                //     //     item.bItemInicial,
+                //     //     item.bNumeroCapturas,
+                //     //     item.szMsgPrevia,
+                //     //     item.bTipoEntradaCodigoBarras,
+                //     //     item.bOmiteMsgAlerta,
+                //     //     item.bIniciaPelaEsquerda,
+                //     //     item.bNotificarCancelamento
+                //     // };
+
+                //     // Console.WriteLine(JsonSerializer.Serialize(anonymousObject));
+
+                //     return E_PWRET.PWRET_OK;
+                // }
 
                 E_PWRET? interactionResult = interactions.Interact(item, index);
                 if (interactionResult != null)
@@ -602,11 +642,6 @@ namespace AppPDV
             // Caso ocorra um erro no processo de inicialização da biblioteca, dispara uma exceção
             if (ret != E_PWRET.PWRET_OK)
                 throw new Exception(string.Format("Erro {0} ao executar PW_iInit", ret.ToString()));
-        }
-
-        public E_PWRET installation()
-        {
-            return Installation();
         }
     }
 }
