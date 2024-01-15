@@ -9,7 +9,7 @@ namespace AppPDV
     [ComVisible(true)]
     public class PGWGateway
     {
-        PGW pgw;
+        private readonly PGW pgw;
 
         public PGWGateway(
             OnMessageRaisingEventHandler onMessageRaising,

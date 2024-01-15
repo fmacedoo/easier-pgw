@@ -3,15 +3,32 @@ using PGW;
 
 namespace AppPDV
 {
+    public class FormFunctions
+    {
+        public void go()
+        {
+            var result = PromptBox.ShowConfirmation("101", "vai mesmo?", 3000);
+            Logger.Debug($"result is: {result}");
+        }
+    }
+
     public partial class MainForm : Form
     {
         private WebView2? webView;
+        AppSettings? settings;
 
         public MainForm()
         {
-            Console.WriteLine("MainForm: Loading Webview");
+            settings = ConfigurationManager.LoadAppSettings();
+            ConfigureForm();
             InitializeWebView();
-            Console.WriteLine("MainForm: Webview Loaded");
+        }
+
+        private void ConfigureForm()
+        {
+            // WindowState = FormWindowState.Maximized;
+            FormClosing += MainForm_FormClosing;
+            this.Size = new Size(width: 800, height: 600);
         }
 
         private async void InitializeWebView()
@@ -22,12 +39,12 @@ namespace AppPDV
             };
             Controls.Add(webView);
 
-            // WindowState = FormWindowState.Maximized;
-            FormClosing += MainForm_FormClosing;
-            this.Size = new Size(width: 800, height: 600);
-
             string folderPath = Directory.GetCurrentDirectory();
+            #if DEBUG
+            string indexPath = Path.Combine(folderPath, "..", "public", "index.html");
+            #else
             string indexPath = Path.Combine(folderPath, "public", "index.html");
+            #endif
             Console.WriteLine($"Using path {indexPath}");
 
             if (Directory.Exists(folderPath) && File.Exists(indexPath))
@@ -42,6 +59,7 @@ namespace AppPDV
                     DefaultPromptMenuRaisingHandler
                 );
                 webView.CoreWebView2.AddHostObjectToScript("pgw", pgw);
+                webView.CoreWebView2.AddHostObjectToScript("formfunctions", new FormFunctions());
                 // webView.CoreWebView2.OpenDevToolsWindow();
             }
             else
@@ -55,29 +73,30 @@ namespace AppPDV
             webView?.Dispose();
         }
 
-        private void DefaultMessageRaisingHandler(string message)
+        private void DefaultMessageRaisingHandler(string message, int? timeoutToClose = null)
         {
-            MessageBox.Show(message, "101");
+            PromptBox.Show(message, timeoutToClose);
         }
 
-        private PromptConfirmationResult DefaultPromptConfirmationRaisingHandler(string message)
+        private PromptConfirmationResult DefaultPromptConfirmationRaisingHandler(string message, int? timeoutToClose = null)
         {
-            var result = PromptBox.ShowConfirmation("101", message);
+            var result = PromptBox.ShowConfirmation("101", message, timeoutToClose);
             return result ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
         }
 
         private string? DefaultPromptInputRaisingHandler(string message)
         {
-            if (message == "INSIRA A SENHA TÉCNICA") return "314159";
-            if (message == "ID PONTO DE CAPTURA:") return "86629";
-            if (message == "CNPJ/CPF:") return "33.838.198/0001-36";
-            if (message == "NOME/IP SERVIDOR:") return "esba-hom01.tpgweb.io:17500";
-            return PromptBox.Show("101", message);
+            if (message == "INSIRA A SENHA TÉCNICA") return settings?.PGWSettings?.SENHA_TECNICA;
+            if (message == "ID PONTO DE CAPTURA:") return settings?.PGWSettings?.PONTO_CAPTURA;
+            if (message == "CNPJ/CPF:") return settings?.PGWSettings?.CPNJ;
+            if (message == "NOME/IP SERVIDOR:") return settings?.PGWSettings?.SERVIDOR;
+
+            return PromptBox.Prompt("101", message);
         }
 
         private string? DefaultPromptMenuRaisingHandler(IEnumerable<string> options)
         {
-            return PromptBox.ShowList("Escolha uma opção:", options);
+            return PromptBox.PromptList("Escolha uma opção:", options);
         }
     }
 }

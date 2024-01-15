@@ -374,7 +374,7 @@ namespace AppPDV
                 // Caso tenha retornado uma mensagem para exibição, exibe
                 if (result == E_PWRET.PWRET_DISPLAY)
                 {
-                    var promptResult = interactions.RaisePromptConfirmation(displayMessage.ToString().TrimStart('\r').Replace("\r", "\n"));
+                    var promptResult = interactions.RaisePromptConfirmation(displayMessage.ToString().TrimStart('\r').Replace("\r", "\n"), 1000);
 
                     // Verifica se o operador abortou a operação no checkout
                     if (promptResult == PromptConfirmationResult.Cancel)
@@ -541,51 +541,14 @@ namespace AppPDV
                 if (item.szMsgPrevia.Length > 0)
                 {
                     Logger.Debug($"ShowAutomationUserInteraction: szMsgPrevia {item.szMsgPrevia}");
-                    interactions.RaiseMessage(item.szMsgPrevia);
+                    interactions.RaiseMessage(item.szMsgPrevia, 3000);
                 }
 
-                // if (item.bTipoDeDado == 0)
-                // {
-                //     Logger.Debug("ShowAutomationUserInteraction: Item com valor zerado.");
-
-                //     // var anonymousObject = new
-                //     // {
-                //     //     item.wIdentificador,
-                //     //     item.bTipoDeDado,
-                //     //     item.szPrompt,
-                //     //     item.bNumOpcoesMenu,
-                //     //     TextoMenu = Array.ConvertAll(item.vszTextoMenu, item => item.szTextoMenu),
-                //     //     ValorMenu = Array.ConvertAll(item.vszValorMenu, item => item.szValorMenu),
-                //     //     item.szMascaraDeCaptura,
-                //     //     item.bTiposEntradaPermitidos,
-                //     //     item.bTamanhoMinimo,
-                //     //     item.bTamanhoMaximo,
-                //     //     item.ulValorMinimo,
-                //     //     item.ulValorMaximo,
-                //     //     item.bOcultarDadosDigitados,
-                //     //     item.bValidacaoDado,
-                //     //     item.bAceitaNulo,
-                //     //     item.szValorInicial,
-                //     //     item.bTeclasDeAtalho,
-                //     //     item.szMsgValidacao,
-                //     //     item.szMsgConfirmacao,
-                //     //     item.szMsgDadoMaior,
-                //     //     item.szMsgDadoMenor,
-                //     //     item.bCapturarDataVencCartao,
-                //     //     item.ulTipoEntradaCartao,
-                //     //     item.bItemInicial,
-                //     //     item.bNumeroCapturas,
-                //     //     item.szMsgPrevia,
-                //     //     item.bTipoEntradaCodigoBarras,
-                //     //     item.bOmiteMsgAlerta,
-                //     //     item.bIniciaPelaEsquerda,
-                //     //     item.bNotificarCancelamento
-                //     // };
-
-                //     // Console.WriteLine(JsonSerializer.Serialize(anonymousObject));
-
-                //     return E_PWRET.PWRET_OK;
-                // }
+                if (item.bTipoDeDado == 0)
+                {
+                    Logger.Debug("ShowAutomationUserInteraction: Item com valor zerado.");
+                    return E_PWRET.PWRET_OK;
+                }
 
                 E_PWRET? interactionResult = interactions.Interact(item, index);
                 if (interactionResult != null)
@@ -628,16 +591,18 @@ namespace AppPDV
 
         private void Init()
         {
+            Logger.Info("PGW: Init");
             // Define o diretório da lib
             string path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\PGWebLib\\";
-            Console.WriteLine($"Using lib path: {path}");
 
             // Cria o diretório que será utilizado pela função PW_iInit
             Directory.CreateDirectory(path);
+            Logger.Debug($"Created directory: {path}");
 
             // Inicializa a biblioteca, indicando a pasta de trabalho a ser utilizada para gravação
             // de logs e arquivos
             E_PWRET ret = (E_PWRET)Interop.PW_iInit(path);
+            Logger.Debug("PW_iInit");
 
             // Caso ocorra um erro no processo de inicialização da biblioteca, dispara uma exceção
             if (ret != E_PWRET.PWRET_OK)

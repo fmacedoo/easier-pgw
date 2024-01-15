@@ -48,14 +48,14 @@ namespace AppPDV
             return pinPadInteractions.Interact(option, index);
         }
 
-        public void RaiseMessage(string message)
+        public void RaiseMessage(string message, int? timeoutToClose = null)
         {
-            MessageRaising?.Invoke(message);
+            MessageRaising?.Invoke(message, timeoutToClose);
         }
 
-        public PromptConfirmationResult? RaisePromptConfirmation(string message)
+        public PromptConfirmationResult? RaisePromptConfirmation(string message, int? timeoutToClose = null)
         {
-            return PromptConfirmationRaising?.Invoke(message);
+            return PromptConfirmationRaising?.Invoke(message, timeoutToClose);
         }
 
         private E_PWRET Input(PW_GetData data)

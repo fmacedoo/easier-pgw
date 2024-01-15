@@ -8,7 +8,7 @@
 <body>
     <h1>Production Mode - No bundle</h1>
     <input type="text" id="message" />
-    <button onclick="go()">Test comm!</button>
+    <button onclick="go()">go</button>
     <button onclick="installation()">installation</button>
     <button onclick="operations()">operations</button>
     <button onclick="payment()">payment</button>
@@ -16,8 +16,7 @@
     
     <script type="text/javascript">
         function go() {
-            const message = document.getElementById('message').value;
-            window.chrome.webview.hostObjects.bridge.ShowMessageBox(message);
+            window.chrome.webview.hostObjects.formfunctions.go();
         }
 
         function installation() {

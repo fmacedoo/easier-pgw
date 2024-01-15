@@ -2,7 +2,54 @@ namespace PGW
 {
     public static class PromptBox
     {
-        public static string? Show(string title, string prompt)
+        public static bool Show(string message, int? timeoutToClose = null)
+        {
+            Form promptForm = new Form()
+            {
+                Width = 300,
+                Height = 300,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterScreen,
+                DialogResult = DialogResult.None,
+            };
+
+            Label label = new Label() { Left = 10, Top = 20, Width = 280, Text = message, AutoSize = true };
+            Button confirmation = new Button() { Text = "OK", Left = 100, Width = 70, Top = 20 + 50 + 50, DialogResult = DialogResult.OK };
+
+            confirmation.Click += (sender, e) => { promptForm.DialogResult = DialogResult.OK; promptForm.Close(); };
+
+            promptForm.Controls.Add(label);
+            promptForm.Controls.Add(confirmation);
+
+            promptForm.AcceptButton = confirmation;
+
+            if (timeoutToClose.HasValue)
+            {
+                promptForm.DialogResult = DialogResult.OK;
+                Task.Run(() =>
+                {
+                    Thread.Sleep(timeoutToClose.Value);
+                    if (promptForm.InvokeRequired)
+                    {
+                        promptForm.Invoke(new Action(() =>
+                        {
+                            promptForm.DialogResult = DialogResult.OK;
+                            promptForm.Close();
+                        }));
+                    }
+                    else
+                    {
+                        promptForm.DialogResult = DialogResult.OK;
+                        promptForm.Close();
+                    }
+                });
+            }
+
+            // This will block until the form is closed
+            return promptForm.ShowDialog() == DialogResult.OK;
+        }
+
+        public static string? Prompt(string title, string prompt)
         {
             Form promptForm = new Form()
             {
@@ -11,13 +58,14 @@ namespace PGW
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 Text = title,
                 StartPosition = FormStartPosition.CenterScreen,
+                DialogResult = DialogResult.None,
             };
 
             Label label = new Label() { Left = 10, Top = 20, Width = 280, Text = prompt, AutoSize = true };
             TextBox textBox = new TextBox() { Left = 50, Top = 20 + 50, Width = 200 };
             Button confirmation = new Button() { Text = "OK", Left = 100, Width = 70, Top = 20 + 50 + 50, DialogResult = DialogResult.OK };
 
-            confirmation.Click += (sender, e) => { promptForm.Close(); };
+            confirmation.Click += (sender, e) => { promptForm.DialogResult = DialogResult.OK; promptForm.Close(); };
 
             promptForm.Controls.Add(label);
             promptForm.Controls.Add(textBox);
@@ -28,7 +76,7 @@ namespace PGW
             return promptForm.ShowDialog() == DialogResult.OK ? textBox.Text : null;
         }
 
-        public static bool ShowConfirmation(string title, string message)
+        public static bool ShowConfirmation(string title, string message, int? timeoutToClose = null)
         {
             Form promptForm = new Form()
             {
@@ -36,7 +84,8 @@ namespace PGW
                 Height = 150,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 Text = title,
-                StartPosition = FormStartPosition.CenterScreen
+                StartPosition = FormStartPosition.CenterScreen,
+                DialogResult = DialogResult.None,
             };
 
             Label messageLabel = new Label() { Left = 50, Top = 20, Width = 200, Text = message };
@@ -50,11 +99,33 @@ namespace PGW
             promptForm.AcceptButton = okButton;
             promptForm.CancelButton = cancelButton;
 
+            if (timeoutToClose.HasValue)
+            {
+                promptForm.DialogResult = DialogResult.OK;
+                Task.Run(() =>
+                {
+                    Thread.Sleep(timeoutToClose.Value);
+                    if (promptForm.InvokeRequired)
+                    {
+                        promptForm.Invoke(new Action(() =>
+                        {
+                            promptForm.DialogResult = DialogResult.OK;
+                            promptForm.Close();
+                        }));
+                    }
+                    else
+                    {
+                        promptForm.DialogResult = DialogResult.OK;
+                        promptForm.Close();
+                    }
+                });
+            }
+
             return promptForm.ShowDialog() == DialogResult.OK;
         }
 
 
-        public static string? ShowList(string prompt, IEnumerable<string> options)
+        public static string? PromptList(string prompt, IEnumerable<string> options)
         {
             Form promptForm = new Form()
             {
@@ -80,7 +151,7 @@ namespace PGW
 
             promptForm.AcceptButton = confirmation;
 
-            return promptForm.ShowDialog() ==  DialogResult.OK ? listBox.SelectedItem?.ToString() : null;
+            return promptForm.ShowDialog() == DialogResult.OK ? listBox.SelectedItem?.ToString() : null;
         }
     }
 
