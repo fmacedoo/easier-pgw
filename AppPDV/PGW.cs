@@ -1,16 +1,10 @@
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
-using Microsoft.VisualBasic;
 using PGW.Dll;
 using static PGW.CustomObjects;
 using static PGW.Enums;
 
 namespace AppPDV
 {
-    [ClassInterface(ClassInterfaceType.AutoDual)]
-    [ComVisible(true)]
     public class PGW
     {
         private readonly Interactions interactions;

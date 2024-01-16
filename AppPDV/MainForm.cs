@@ -3,31 +3,22 @@ using PGW;
 
 namespace AppPDV
 {
-    public class FormFunctions
-    {
-        public void go()
-        {
-            var result = PromptBox.ShowConfirmation("101", "vai mesmo?", 3000);
-            Logger.Debug($"result is: {result}");
-        }
-    }
-
     public partial class MainForm : Form
     {
         private WebView2? webView;
-        AppSettings? settings;
 
         public MainForm()
         {
-            settings = ConfigurationManager.LoadAppSettings();
             ConfigureForm();
             InitializeWebView();
         }
 
         private void ConfigureForm()
         {
-            // WindowState = FormWindowState.Maximized;
+            var LastWindowState = Enum.Parse<FormWindowState>(AppSettings.Instance.WebView.FormSize != null ? AppSettings.Instance.WebView.FormSize : "Normal");
+            WindowState = LastWindowState;
             FormClosing += MainForm_FormClosing;
+            Resize += MainForm_Resize;
             this.Size = new Size(width: 800, height: 600);
         }
 
@@ -39,64 +30,34 @@ namespace AppPDV
             };
             Controls.Add(webView);
 
-            string folderPath = Directory.GetCurrentDirectory();
-            #if DEBUG
-            string indexPath = Path.Combine(folderPath, "..", "public", "index.html");
-            #else
+#if DEBUG
+            string indexPath = AppSettings.Instance.WebView.WebClientAddress;
+#else
             string indexPath = Path.Combine(folderPath, "public", "index.html");
-            #endif
-            Console.WriteLine($"Using path {indexPath}");
-
-            if (Directory.Exists(folderPath) && File.Exists(indexPath))
-            {
-                await webView.EnsureCoreWebView2Async(null);
-                webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
-                
-                PGWGateway pgw = new PGWGateway(
-                    DefaultMessageRaisingHandler,
-                    DefaultPromptConfirmationRaisingHandler,
-                    DefaultPromptInputRaisingHandler,
-                    DefaultPromptMenuRaisingHandler
-                );
-                webView.CoreWebView2.AddHostObjectToScript("pgw", pgw);
-                webView.CoreWebView2.AddHostObjectToScript("formfunctions", new FormFunctions());
-                // webView.CoreWebView2.OpenDevToolsWindow();
-            }
-            else
+            string folderPath = Directory.GetCurrentDirectory();
+            if (!Directory.Exists(folderPath) || !File.Exists(indexPath))
             {
                 MessageBox.Show("Folder or index.html not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+#endif
+            Console.WriteLine($"Using web client at {indexPath}");
+
+            await webView.EnsureCoreWebView2Async(null);
+            webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
+
+            ProcessGateway pgw = new ProcessGateway();
+            webView.CoreWebView2.AddHostObjectToScript("gateway", pgw);
+        }
+
+        private void MainForm_Resize(object? sender, EventArgs e)
+        {
+            AppSettings.Instance.WebView.FormSize = WindowState.ToString();
+            AppSettings.Persist();
         }
 
         private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
             webView?.Dispose();
-        }
-
-        private void DefaultMessageRaisingHandler(string message, int? timeoutToClose = null)
-        {
-            PromptBox.Show(message, timeoutToClose);
-        }
-
-        private PromptConfirmationResult DefaultPromptConfirmationRaisingHandler(string message, int? timeoutToClose = null)
-        {
-            var result = PromptBox.ShowConfirmation("101", message, timeoutToClose);
-            return result ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
-        }
-
-        private string? DefaultPromptInputRaisingHandler(string message)
-        {
-            if (message == "INSIRA A SENHA TÉCNICA") return settings?.PGWSettings?.SENHA_TECNICA;
-            if (message == "ID PONTO DE CAPTURA:") return settings?.PGWSettings?.PONTO_CAPTURA;
-            if (message == "CNPJ/CPF:") return settings?.PGWSettings?.CPNJ;
-            if (message == "NOME/IP SERVIDOR:") return settings?.PGWSettings?.SERVIDOR;
-
-            return PromptBox.Prompt("101", message);
-        }
-
-        private string? DefaultPromptMenuRaisingHandler(IEnumerable<string> options)
-        {
-            return PromptBox.PromptList("Escolha uma opção:", options);
         }
     }
 }
