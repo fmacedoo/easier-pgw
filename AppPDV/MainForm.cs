@@ -45,7 +45,7 @@ namespace AppPDV
             await webView.EnsureCoreWebView2Async(null);
             webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
 
-            ProcessGateway pgw = new ProcessGateway();
+            ProcessGateway pgw = new ProcessGateway(webView);
             webView.CoreWebView2.AddHostObjectToScript("gateway", pgw);
         }
 
