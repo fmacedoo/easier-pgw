@@ -5,21 +5,13 @@ using static PGW.Enums;
 
 namespace AppPDV
 {
-    static class Scripts
-    {
-        public static string GetShowScript(string requestId, string message) => $"gateway.show_message('{requestId}', '{message}')";
-        public static string GetShowConfirmationScript(string message) => $"gateway.show_message_confirmation('{message}')";
-        public static string GetCloseScript() => $"gateway.close()";
-    }
-
     [ClassInterface(ClassInterfaceType.AutoDual)]
     [ComVisible(true)]
     public class ProcessGateway
     {
         private readonly PGW pgw;
         private readonly WebView2 webView;
-        private readonly HashSet<string> timeouts = new HashSet<string>();
-        private readonly HashSet<string> aborted = new HashSet<string>();
+        private readonly WebViewInteractionController webViewInteractionController;
 
         public ProcessGateway(WebView2 webView)
         {
@@ -30,136 +22,39 @@ namespace AppPDV
                 DefaultPromptInputRaisingHandler,
                 DefaultPromptMenuRaisingHandler
             );
+            webViewInteractionController = new WebViewInteractionController(webView);
         }
 
-        public async Task<bool> test_message()
+        public void test_message()
         {
-            var requestId = Guid.NewGuid().ToString();
-            timeouts.Add(requestId);
-
-            Logger.Debug("Calling test_message()");
-            await CallJavaScriptFunction(Scripts.GetShowScript(requestId, "test_message from C#"));
-            Logger.Debug("Called!");
-
-            int? timeoutToClose = 3000;
-            if (timeoutToClose.HasValue)
-            {
-                _ = Task.Run(() => {
-                    Thread.Sleep(timeoutToClose.Value);
-                    if (timeouts.Contains(requestId)) {
-                        timeouts.Remove(requestId);
-                        _ = CallJavaScriptFunction(Scripts.GetCloseScript());
-                    }
-                });
-            }
-
-            while (timeouts.Contains(requestId))
-            {
-                Thread.Sleep(200);
-            }
-
-            return !aborted.Remove(requestId);
+            _ = Task.Run(async () => {
+                var confirmed = await webViewInteractionController.Show("test_message from c#");
+                Logger.Debug($"After test_message (aborted={!confirmed})");
+            });
         }
 
-        public void test_message_confirmation_async()
+        public void test_message_confirmation()
         {
             Task.Run(async () => {
-                Thread.Sleep(1000);
-                var confirmed = await test_message_confirmation();
+                var confirmed = await webViewInteractionController.ShowWithConfirmation("test_message_confirmation from c#");
                 Logger.Debug($"After test_message_confirmation (aborted={!confirmed})");
             });
         }
 
-        public async Task<bool> test_message_confirmation()
-        {
-            var requestId = Guid.NewGuid().ToString();
-            timeouts.Add(requestId);
-
-            Logger.Debug("Calling test_message()");
-            await CallJavaScriptFunction(Scripts.GetShowScript(requestId, "test_message_confirmation from C#"));
-            Logger.Debug("Called!");
-
-            int? timeoutToClose = 3000;
-            if (timeoutToClose.HasValue)
-            {
-                _ = Task.Run(() => {
-                    Thread.Sleep(timeoutToClose.Value);
-                    if (timeouts.Contains(requestId)) {
-                        timeouts.Remove(requestId);
-                        _ = CallJavaScriptFunction(Scripts.GetCloseScript());
-                    }
-                });
-            }
-
-            while (timeouts.Contains(requestId))
-            {
-                Thread.Sleep(200);
-            }
-
-            return !aborted.Remove(requestId);
-        }
-
         public void abort(string? requestId = null)
         {
-            if (requestId != null)
-            {
-                timeouts.Remove(requestId);
-                aborted.Add(requestId);
-            }
-
-
-            Logger.Debug("Calling close()");
-            _ = CallJavaScriptFunction(Scripts.GetCloseScript());
+            webViewInteractionController.Abort(requestId);
         }
 
-        private async Task CallJavaScriptFunction(string script)
+        private async Task DefaultMessageRaisingHandler(string message, int? timeoutToClose = null)
         {
-            Logger.Info("CallJavaScriptFunction:");
-            if (webView.InvokeRequired)
-            {
-                Logger.Info("Invoking:");
-                await webView.Invoke(Invoke);
-                return;
-            }
-
-            await Invoke();
-
-            async Task Invoke()
-            {
-                if (webView != null && webView.CoreWebView2 != null)
-                {
-                    Logger.Debug($"script: {script}");
-                    await webView.CoreWebView2.ExecuteScriptAsync(script);
-                }
-            }
+            await webViewInteractionController.Show(message, timeoutToClose);
         }
 
-        private void DefaultMessageRaisingHandler(string message, int? timeoutToClose = null)
+        private async Task<PromptConfirmationResult> DefaultPromptConfirmationRaisingHandler(string message, int? timeoutToClose = null)
         {
-            PromptBox.Show(message, timeoutToClose);
-            // await CallJavaScriptFunction(Scripts.GetShowScript(message));
-            
-            // if (timeoutToClose.HasValue)
-            // {
-            //     Thread.Sleep(timeoutToClose.Value);
-            //     _ = CallJavaScriptFunction(Scripts.GetCloseScript());
-            // }
-        }
-
-        private PromptConfirmationResult DefaultPromptConfirmationRaisingHandler(string message, int? timeoutToClose = null)
-        {
-            var result = PromptBox.ShowConfirmation("101", message, timeoutToClose);
-            return result ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
-
-            // await CallJavaScriptFunction(Scripts.GetShowConfirmationScript(message));
-
-            // CallJavaScriptFunction("listen_abort")
-            
-            // if (timeoutToClose.HasValue)
-            // {
-            //     Thread.Sleep(timeoutToClose.Value);
-            //     _ = CallJavaScriptFunction("gateway_escape", "");
-            // }
+            var confirmed = await webViewInteractionController.Show(message, timeoutToClose);
+            return confirmed ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
         }
 
         private string? DefaultPromptInputRaisingHandler(string message)
@@ -177,9 +72,12 @@ namespace AppPDV
             return PromptBox.PromptList("Escolha uma opção:", options);
         }
 
-        public E_PWRET installation()
+        public void installation()
         {
-            return pgw.Installation();
+            Task.Run(() => {
+                E_PWRET result = pgw.Installation();
+                Logger.Debug($"PaymInstallationent result: {result}");
+            });
         }
 
         public string operations()
@@ -202,13 +100,14 @@ namespace AppPDV
             return serialized;
         }
 
-        public E_PWRET payment()
+        public void payment()
         {
-            Logger.Info("Payment");
-            E_PWRET result = pgw.Operation(E_PWOPER.PWOPER_SALE);
+            Task.Run(() => {
+                Logger.Info("Payment");
+                E_PWRET result = pgw.Operation(E_PWOPER.PWOPER_SALE);
 
-            Logger.Debug($"Payment result: {result}");
-            return result;
+                Logger.Debug($"Payment result: {result}");
+            });
         }
     }
 }

@@ -55,7 +55,9 @@ namespace AppPDV
 
         public PromptConfirmationResult? RaisePromptConfirmation(string message, int? timeoutToClose = null)
         {
-            return PromptConfirmationRaising?.Invoke(message, timeoutToClose);
+            var promptResult = PromptConfirmationRaising?.Invoke(message, timeoutToClose);
+            promptResult?.Wait();
+            return promptResult != null ? promptResult.Result : null;
         }
 
         private E_PWRET Input(PW_GetData data)
@@ -128,7 +130,7 @@ namespace AppPDV
         private E_PWRET Prompt(PW_GetData data)
         {
             var message = data.szPrompt;
-            var promptResult = PromptConfirmationRaising?.Invoke(message);
+            var promptResult = PromptConfirmationRaising?.Invoke(message).Result;
 
             if (promptResult == PromptConfirmationResult.Cancel)
             {
