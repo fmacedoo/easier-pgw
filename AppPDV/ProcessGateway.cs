@@ -15,6 +15,7 @@ namespace AppPDV
 
         public ProcessGateway(WebView2 webView)
         {
+            Logger.Info("ProcessGateway constructor");
             this.webView = webView;
             pgw = new PGW(
                 DefaultMessageRaisingHandler,
@@ -25,51 +26,40 @@ namespace AppPDV
             webViewInteractionController = new WebViewInteractionController(webView);
         }
 
-        public void test_message()
-        {
-            _ = Task.Run(async () => {
-                var confirmed = await webViewInteractionController.Show("test_message from c#");
-                Logger.Debug($"After test_message (aborted={!confirmed})");
-            });
-        }
-
-        public void test_message_confirmation()
-        {
-            Task.Run(async () => {
-                var confirmed = await webViewInteractionController.ShowWithConfirmation("test_message_confirmation from c#");
-                Logger.Debug($"After test_message_confirmation (aborted={!confirmed})");
-            });
-        }
-
         public void abort(string? requestId = null)
         {
             webViewInteractionController.Abort(requestId);
         }
 
+        public void confirm(string requestId, string value)
+        {
+            webViewInteractionController.Confirm(requestId, value);
+        }
+
         private async Task DefaultMessageRaisingHandler(string message, int? timeoutToClose = null)
         {
-            await webViewInteractionController.Show(message, timeoutToClose);
+            await webViewInteractionController.ShowMessage(message, timeoutToClose);
         }
 
         private async Task<PromptConfirmationResult> DefaultPromptConfirmationRaisingHandler(string message, int? timeoutToClose = null)
         {
-            var confirmed = await webViewInteractionController.Show(message, timeoutToClose);
-            return confirmed ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
+            var confirmed = await webViewInteractionController.ShowMessage(message, timeoutToClose);
+            return confirmed != null ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
         }
 
-        private string? DefaultPromptInputRaisingHandler(string message)
+        private async Task<string?> DefaultPromptInputRaisingHandler(string message)
         {
             if (message == "INSIRA A SENHA TÉCNICA") return AppSettings.Instance.PGW?.SENHA_TECNICA;
             if (message == "ID PONTO DE CAPTURA:") return AppSettings.Instance.PGW?.PONTO_CAPTURA;
             if (message == "CNPJ/CPF:") return AppSettings.Instance.PGW?.CPNJ;
             if (message == "NOME/IP SERVIDOR:") return AppSettings.Instance.PGW?.SERVIDOR;
 
-            return PromptBox.Prompt("101", message);
+            return await webViewInteractionController.ShowPrompt(message);
         }
 
-        private string? DefaultPromptMenuRaisingHandler(IEnumerable<string> options)
+        private async Task<string?> DefaultPromptMenuRaisingHandler(IEnumerable<string> options, string defaultOption)
         {
-            return PromptBox.PromptList("Escolha uma opção:", options);
+            return await webViewInteractionController.ShowMenu(options, defaultOption);
         }
 
         public void installation()

@@ -16,6 +16,7 @@ namespace AppPDV
 
         public Interactions(Func<E_PWRET> loopPP)
         {
+            Logger.Info("Interactions constructor");
             pinPadInteractions = new PINPadInteractions(loopPP);
             actions_map = new Dictionary<E_PWDAT, Func<PW_GetData, E_PWRET>>
             {
@@ -55,9 +56,9 @@ namespace AppPDV
 
         public PromptConfirmationResult? RaisePromptConfirmation(string message, int? timeoutToClose = null)
         {
-            var promptResult = PromptConfirmationRaising?.Invoke(message, timeoutToClose);
-            promptResult?.Wait();
-            return promptResult != null ? promptResult.Result : null;
+            var promptTask = PromptConfirmationRaising?.Invoke(message, timeoutToClose);
+            promptTask?.Wait();
+            return promptTask != null ? promptTask.Result : null;
         }
 
         private E_PWRET Input(PW_GetData data)
@@ -77,15 +78,17 @@ namespace AppPDV
                 data.bTamanhoMaximo = 10;
             }
 
-            string? value = PromptInputRaising?.Invoke(data.szPrompt.Replace("\r", "\n"));
+            var promptTask = PromptInputRaising?.Invoke(data.szPrompt.Replace("\r", "\n"));
+            promptTask?.Wait();
 
             // Caso o usuário tenha abortado a transação, retorna E_PWRET.PWRET_CANCEL
-            if (value is null)
+            if (promptTask?.Result is null)
             {
                 return E_PWRET.PWRET_CANCEL;
             }
 
             // Adiciona o dado capturado
+            string value = promptTask.Result;
             E_PWRET result = (E_PWRET)Interop.PW_iAddParam(data.wIdentificador, value);
 
             // Registra na janela de debug o resultado da adição do parâmetro
@@ -112,10 +115,21 @@ namespace AppPDV
             }
 
             // Caso o menu só tenha uma opção e ela seja a opção default, seleciona automaticamente
-            // Caso ela não seja a opção defualt, necessário exibir para confirmação do usuário
-            var option = (data.bNumOpcoesMenu == 1 && data.bItemInicial == 0) ?
-                data.vszValorMenu[0].szValorMenu :
-                data.vszValorMenu[options.IndexOf(PromptMenuRaising?.Invoke(options))].szValorMenu;
+            // Caso ela não seja a opção defualt, necessário exibir para confirmação do usuário (PromptMenuRaising)
+            var option =
+                (data.bNumOpcoesMenu == 1 && data.bItemInicial == 0) ?
+                    data.vszValorMenu[0].szValorMenu :
+                    null;
+
+            if (option == null) {
+                var defaultOption = options[data.bItemInicial];
+                var promptTask = PromptMenuRaising?.Invoke(options, defaultOption);
+                promptTask?.Wait();
+                if (promptTask?.Result != null) {
+                    string value = promptTask.Result;
+                    option = data.vszValorMenu[options.IndexOf(value)].szValorMenu;
+                }
+            }
 
             if (option is null) return E_PWRET.PWRET_CANCEL;
 

@@ -3,14 +3,14 @@ using Microsoft.Web.WebView2.WinForms;
 
 namespace AppPDV
 {
-    
-
     public class WebViewInteractionController
     {
         private static class Scripts
         {
             public static Func<string, string> GetShowScript(string message) => requestId => $"gateway.show_message('{requestId}', '{cleanupMessage(message)}')";
             public static Func<string, string> GetShowConfirmationScript(string message) => requestId => $"gateway.show_message_confirmation('{requestId}', '{cleanupMessage(message)}')";
+            public static Func<string, string> GetShowMenu(IEnumerable<string> options, string defaultOption) => requestId => $"gateway.show_menu('{requestId}', {JsonSerializer.Serialize(options)}, '{defaultOption}')";
+            public static Func<string, string> GetShowPrompt(string message) => requestId => $"gateway.show_prompt('{requestId}', '{cleanupMessage(message)}')";
             public static string GetCloseScript() => $"gateway.close()";
 
             private static string cleanupMessage(string message)
@@ -27,42 +27,62 @@ namespace AppPDV
                 return string.Join("\\n", pieces);
             }
         }
-        
+
         private readonly WebView2 webView;
 
         public WebViewInteractionController(WebView2 webView)
         {
+            Logger.Info("WebViewInteractionController constructor");
             this.webView = webView;
         }
 
-        private readonly HashSet<string> timeouts = new HashSet<string>();
+        private readonly HashSet<string> interactions = new HashSet<string>();
         private readonly HashSet<string> aborted = new HashSet<string>();
+        private readonly Dictionary<string, string> confirmed = new Dictionary<string, string>();
 
-        public async Task<bool> Show(string message, int? timeoutToClose = null)
+        public async Task<string?> ShowMessage(string message, int? timeoutToClose = null)
         {
             return await SetScript(Scripts.GetShowScript(message), timeoutToClose);
         }
 
-        public async Task<bool> ShowWithConfirmation(string message, int? timeoutToClose = null)
+        public async Task<string?> ShowMessageWithConfirmation(string message, int? timeoutToClose = null)
         {
             return await SetScript(Scripts.GetShowConfirmationScript(message), timeoutToClose);
+        }
+
+        public async Task<string?> ShowMenu(IEnumerable<string> options, string defaultOption)
+        {
+            return await SetScript(Scripts.GetShowMenu(options, defaultOption));
+        }
+
+        public async Task<string?> ShowPrompt(string message)
+        {
+            return await SetScript(Scripts.GetShowPrompt(message));
         }
 
         public void Abort(string? requestId = null)
         {
             if (requestId != null)
             {
-                timeouts.Remove(requestId);
+                interactions.Remove(requestId);
                 aborted.Add(requestId);
             }
 
             _ = ExecuteScript(Scripts.GetCloseScript());
         }
 
-        private async Task<bool> SetScript(Func<string, string> scriptBuilder, int? timeoutToClose = null)
+        public void Confirm(string requestId, string value)
+        {
+            interactions.Remove(requestId);
+            confirmed.Add(requestId, value);
+
+            _ = ExecuteScript(Scripts.GetCloseScript());
+        }
+
+        private async Task<string?> SetScript(Func<string, string> scriptBuilder, int? timeoutToClose = null)
         {
             var requestId = Guid.NewGuid().ToString();
-            timeouts.Add(requestId);
+            interactions.Add(requestId);
 
             Logger.Debug($"Bulding script: timeout={timeoutToClose}");
             var script = scriptBuilder(requestId);
@@ -71,21 +91,29 @@ namespace AppPDV
 
             if (timeoutToClose.HasValue)
             {
-                _ = Task.Run(() => {
+                _ = Task.Run(() =>
+                {
                     Thread.Sleep(timeoutToClose.Value);
-                    if (timeouts.Contains(requestId)) {
-                        timeouts.Remove(requestId);
+                    if (interactions.Contains(requestId))
+                    {
+                        interactions.Remove(requestId);
                         _ = ExecuteScript(Scripts.GetCloseScript());
                     }
                 });
             }
 
-            while (timeouts.Contains(requestId))
+            while (interactions.Contains(requestId))
             {
                 Thread.Sleep(200);
             }
 
-            return !aborted.Remove(requestId);
+            bool isAborted = aborted.Remove(requestId);
+            string? value = confirmed.ContainsKey(requestId) ? confirmed[requestId] : null;
+
+            if (isAborted) return null;
+            if (value != null) return value;
+
+            return "confirmed";
         }
 
         private async Task ExecuteScript(string script)

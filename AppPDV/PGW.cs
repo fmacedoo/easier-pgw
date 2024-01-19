@@ -16,6 +16,7 @@ namespace AppPDV
             OnPromptMenuRaisingEventHandler onPromptMenuRaising
         )
         {
+            Logger.Info("PGW constructor");
             interactions = new Interactions(LoopPP);
 
             interactions.MessageRaising += onMessageRaising;

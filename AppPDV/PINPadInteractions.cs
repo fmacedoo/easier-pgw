@@ -10,6 +10,7 @@ namespace AppPDV
 
         public PINPadInteractions(Func<E_PWRET> loopPP)
         {
+            Logger.Info("PINPadInteractions constructor");
             this.loopPP = loopPP;
 
             actions_map = new Dictionary<E_PWDAT, Func<ushort, E_PWRET>>
