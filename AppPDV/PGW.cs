@@ -115,6 +115,7 @@ namespace AppPDV
         private bool IsConfirmationRequired(List<PW_Parameter> transactionResponse)
         {
             PW_Parameter? confirmacaoNecessaria = transactionResponse.Find(item => item.parameterCode == (ushort)E_PWINFO.PWINFO_CNFREQ);
+            if (confirmacaoNecessaria?.parameterValue == null) return false;
             return confirmacaoNecessaria != null && int.Parse(confirmacaoNecessaria.parameterValue) == 1;
         }
 

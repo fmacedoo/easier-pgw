@@ -5,32 +5,39 @@ namespace AppPDV
 {
     public partial class MainForm : Form
     {
-        private WebView2? webView;
+        private WebView2 webView;
 
         public MainForm()
-        {
-            ConfigureForm();
-            InitializeWebView();
-        }
-
-        private void ConfigureForm()
-        {
-            var LastWindowState = Enum.Parse<FormWindowState>(AppSettings.Instance.WebView.FormSize != null ? AppSettings.Instance.WebView.FormSize : "Normal");
-            WindowState = LastWindowState;
-            FormClosing += MainForm_FormClosing;
-            Resize += MainForm_Resize;
-            this.Size = new Size(width: 800, height: 600);
-        }
-
-        private async void InitializeWebView()
         {
             webView = new WebView2
             {
                 Dock = DockStyle.Fill
             };
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            Logger.Info("ConfigureForm");
+            SuspendLayout();
+
             Controls.Add(webView);
 
-#if DEBUG
+            var LastWindowState = Enum.Parse<FormWindowState>(AppSettings.Instance.WebView.FormSize != null ? AppSettings.Instance.WebView.FormSize : "Normal");
+            WindowState = LastWindowState;
+            FormClosing += MainForm_FormClosing;
+            Resize += MainForm_Resize;
+            Load += MainForm_Load;
+            Size = new Size(width: 800, height: 600);
+            
+            ResumeLayout(true);
+            Logger.Debug("ConfigureForm finished");
+        }
+
+        private void MainForm_Load(object? sender, EventArgs e)
+        {
+            Logger.Info("MainForm_Load");
+            #if DEBUG
             string indexPath = AppSettings.Instance.WebView.WebClientAddress;
 #else
             string indexPath = Path.Combine(folderPath, "public", "index.html");
@@ -40,13 +47,26 @@ namespace AppPDV
                 MessageBox.Show("Folder or index.html not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 #endif
-            Console.WriteLine($"Using web client at {indexPath}");
+            Logger.Debug($"Using web client at {indexPath}");
 
-            await webView.EnsureCoreWebView2Async(null);
-            webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
+            webView.Invoke(async () => {
+                Logger.Debug("Webview+Gateway init");
+                await webView.EnsureCoreWebView2Async(null);
+                webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
+                
+                _ = Task.Run(() => {
+                    Logger.Debug("Gateway init");
+                    ProcessGateway pgw = new ProcessGateway(webView);
+                    webView.Invoke(() => {
+                        webView.CoreWebView2.AddHostObjectToScript("gateway", pgw);
+                        Logger.Debug("Gateway finished");
+                        pgw.NotifyInit();
+                    });
+                });
 
-            ProcessGateway pgw = new ProcessGateway(webView);
-            webView.CoreWebView2.AddHostObjectToScript("gateway", pgw);
+                Logger.Debug("Webview finished");
+            });
+            Logger.Debug("MainForm_Load finished");
         }
 
         private void MainForm_Resize(object? sender, EventArgs e)

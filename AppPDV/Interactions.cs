@@ -78,7 +78,64 @@ namespace AppPDV
                 data.bTamanhoMaximo = 10;
             }
 
-            var promptTask = PromptInputRaising?.Invoke(data.szPrompt.Replace("\r", "\n"));
+            // Se não existir mascara de captura, cria uma padrão baseado no tamanho máximo
+            if (data.szMascaraDeCaptura == "")
+            {
+                data.szMascaraDeCaptura = new string('@', data.bTamanhoMaximo);
+            }
+            else
+            {
+                // Ajuste necessário para exibição da moeda
+                if (data.szMascaraDeCaptura.Contains("R$"))
+                {
+                    data.szMascaraDeCaptura = data.szMascaraDeCaptura.Replace("R$", "");
+                }
+            }
+
+            var config = new PromptConfig
+            {
+                Identifier = (E_PWINFO)data.wIdentificador,
+                Message = data.szPrompt.Replace("\r", "\n"),
+                MaxLength = data.bTamanhoMaximo > 0 ? data.bTamanhoMaximo : null,
+                InitialValue = (!string.IsNullOrEmpty(data.szValorInicial.Trim())) ? data.szValorInicial : null,
+            };
+
+            switch ((E_PWTypeInput)data.bTiposEntradaPermitidos)
+            {
+                case E_PWTypeInput.TYPED_NUMERIC:
+                    config.InputMask = data.szMascaraDeCaptura.Replace("@", "0");
+                    config.InputType = PromptFieldType.Numeric;
+                    break;
+                case E_PWTypeInput.TYPED_ALPHA:
+                    config.InputMask = data.szMascaraDeCaptura.Replace("@", "L");
+                    config.InputType = PromptFieldType.Alpha;
+                    break;
+                case E_PWTypeInput.TYPED_ALPHANUMERIC:
+                    config.InputMask = data.szMascaraDeCaptura.Replace("@", "a");
+                    config.InputType = PromptFieldType.AlphaNumeric;
+                    break;
+                case E_PWTypeInput.TYPED_ALPHANUMERICSP:
+                default:
+                    config.InputMask = data.szMascaraDeCaptura.Replace("@", "C");
+                    config.InputType = PromptFieldType.AlphaNumeric;
+                    break;
+            }
+
+            // Não achei este tratamento necessário, ele deve considerar um CPF/CNPJ um valor a ser digitado da esquerda p/ direita.
+            // Não acho a melhor opção!
+            // // Define se o preenchimento deve ser feito da direita pra esquerda (um valor
+            // // em dinheiro, por exemplo)
+            // if (data.bIniciaPelaEsquerda != 1)
+            //     config.InputType = FieldType.Numeric;
+
+            // Casp seja uma das senhas ou a biblioteca tenha solicitado que o dado
+            // seja capturado de forma mascarada
+            if (data.wIdentificador == (ushort)E_PWINFO.PWINFO_AUTHMNGTUSER ||
+                data.wIdentificador == (ushort)E_PWINFO.PWINFO_AUTHTECHUSER ||
+                data.bOcultarDadosDigitados == 1)
+                config.InputType = PromptFieldType.Password;
+            
+            var promptTask = PromptInputRaising?.Invoke(config);
             promptTask?.Wait();
 
             // Caso o usuário tenha abortado a transação, retorna E_PWRET.PWRET_CANCEL

@@ -26,6 +26,18 @@ namespace AppPDV
             webViewInteractionController = new WebViewInteractionController(webView);
         }
 
+        public void NotifyInit()
+        {
+            webViewInteractionController.NotifyInit();
+        }
+
+        public string?[] devices()
+        {
+            var devices = DeviceManagement.List();
+            Console.WriteLine(JsonSerializer.Serialize(devices));
+            return devices;
+        }
+
         public void abort(string? requestId = null)
         {
             webViewInteractionController.Abort(requestId);
@@ -47,14 +59,14 @@ namespace AppPDV
             return confirmed != null ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
         }
 
-        private async Task<string?> DefaultPromptInputRaisingHandler(string message)
+        private async Task<string?> DefaultPromptInputRaisingHandler(PromptConfig config)
         {
-            if (message == "INSIRA A SENHA TÉCNICA") return AppSettings.Instance.PGW?.SENHA_TECNICA;
-            if (message == "ID PONTO DE CAPTURA:") return AppSettings.Instance.PGW?.PONTO_CAPTURA;
-            if (message == "CNPJ/CPF:") return AppSettings.Instance.PGW?.CPNJ;
-            if (message == "NOME/IP SERVIDOR:") return AppSettings.Instance.PGW?.SERVIDOR;
+            if (config.Identifier == E_PWINFO.PWINFO_AUTHTECHUSER) return AppSettings.Instance.PGW?.SENHA_TECNICA;
+            if (config.Identifier == E_PWINFO.PWINFO_POSID) return AppSettings.Instance.PGW?.PONTO_CAPTURA;
+            if (config.Message == "CNPJ/CPF:") return AppSettings.Instance.PGW?.CPNJ;
+            if (config.Message == "NOME/IP SERVIDOR:") return AppSettings.Instance.PGW?.SERVIDOR;
 
-            return await webViewInteractionController.ShowPrompt(message);
+            return await webViewInteractionController.ShowPrompt(config);
         }
 
         private async Task<string?> DefaultPromptMenuRaisingHandler(IEnumerable<string> options, string defaultOption)

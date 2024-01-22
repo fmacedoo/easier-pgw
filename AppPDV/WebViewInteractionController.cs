@@ -7,11 +7,12 @@ namespace AppPDV
     {
         private static class Scripts
         {
-            public static Func<string, string> GetShowScript(string message) => requestId => $"gateway.show_message('{requestId}', '{cleanupMessage(message)}')";
-            public static Func<string, string> GetShowConfirmationScript(string message) => requestId => $"gateway.show_message_confirmation('{requestId}', '{cleanupMessage(message)}')";
-            public static Func<string, string> GetShowMenu(IEnumerable<string> options, string defaultOption) => requestId => $"gateway.show_menu('{requestId}', {JsonSerializer.Serialize(options)}, '{defaultOption}')";
-            public static Func<string, string> GetShowPrompt(string message) => requestId => $"gateway.show_prompt('{requestId}', '{cleanupMessage(message)}')";
+            public static Func<string, string> GetShowScript(string message) => requestId => $"gateway.show_message('{requestId}', '{cleanupMessage(message)}');";
+            public static Func<string, string> GetShowConfirmationScript(string message) => requestId => $"gateway.show_message_confirmation('{requestId}', '{cleanupMessage(message)}');";
+            public static Func<string, string> GetShowMenu(IEnumerable<string> options, string defaultOption) => requestId => $"gateway.show_menu('{requestId}', {JsonSerializer.Serialize(options)}, '{defaultOption}');";
+            public static Func<string, string> GetShowPrompt(PromptConfig config) => requestId => $"gateway.show_prompt('{requestId}', {JsonSerializer.Serialize(config)});";
             public static string GetCloseScript() => $"gateway.close()";
+            public static string GetOnLibInitScript() => $"gateway.on_lib_init()";
 
             private static string cleanupMessage(string message)
             {
@@ -55,9 +56,9 @@ namespace AppPDV
             return await SetScript(Scripts.GetShowMenu(options, defaultOption));
         }
 
-        public async Task<string?> ShowPrompt(string message)
+        public async Task<string?> ShowPrompt(PromptConfig config)
         {
-            return await SetScript(Scripts.GetShowPrompt(message));
+            return await SetScript(Scripts.GetShowPrompt(config));
         }
 
         public void Abort(string? requestId = null)
@@ -77,6 +78,11 @@ namespace AppPDV
             confirmed.Add(requestId, value);
 
             _ = ExecuteScript(Scripts.GetCloseScript());
+        }
+
+        public void NotifyInit()
+        {
+            _ = ExecuteScript(Scripts.GetOnLibInitScript());
         }
 
         private async Task<string?> SetScript(Func<string, string> scriptBuilder, int? timeoutToClose = null)
