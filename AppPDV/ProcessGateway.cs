@@ -50,12 +50,12 @@ namespace AppPDV
 
         private async Task DefaultMessageRaisingHandler(string message, int? timeoutToClose = null)
         {
-            await webViewInteractionController.ShowMessage(message, timeoutToClose);
+            await webViewInteractionController.NotifyMessage(message, timeoutToClose);
         }
 
         private async Task<PromptConfirmationResult> DefaultPromptConfirmationRaisingHandler(string message, int? timeoutToClose = null)
         {
-            var confirmed = await webViewInteractionController.ShowMessage(message, timeoutToClose);
+            var confirmed = await webViewInteractionController.NotifyMessage(message, timeoutToClose);
             return confirmed != null ? PromptConfirmationResult.OK : PromptConfirmationResult.Cancel;
         }
 
@@ -66,19 +66,20 @@ namespace AppPDV
             if (config.Message == "CNPJ/CPF:") return AppSettings.Instance.PGW?.CPNJ;
             if (config.Message == "NOME/IP SERVIDOR:") return AppSettings.Instance.PGW?.SERVIDOR;
 
-            return await webViewInteractionController.ShowPrompt(config);
+            return await webViewInteractionController.NotifyPrompt(config);
         }
 
         private async Task<string?> DefaultPromptMenuRaisingHandler(IEnumerable<string> options, string defaultOption)
         {
-            return await webViewInteractionController.ShowMenu(options, defaultOption);
+            return await webViewInteractionController.NotifyMenu(options, defaultOption);
         }
 
         public void installation()
         {
             Task.Run(() => {
                 E_PWRET result = pgw.Installation();
-                Logger.Debug($"PaymInstallationent result: {result}");
+                Logger.Debug($"Installation result: {result}");
+                if (result == E_PWRET.PWRET_OK) webViewInteractionController.NotifySuccess();
             });
         }
 
@@ -107,8 +108,7 @@ namespace AppPDV
             Task.Run(() => {
                 Logger.Info("Payment");
                 E_PWRET result = pgw.Operation(E_PWOPER.PWOPER_SALE);
-
-                Logger.Debug($"Payment result: {result}");
+                if (result == E_PWRET.PWRET_OK) webViewInteractionController.NotifySuccess();
             });
         }
     }

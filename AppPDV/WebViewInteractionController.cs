@@ -7,12 +7,13 @@ namespace AppPDV
     {
         private static class Scripts
         {
-            public static Func<string, string> GetShowScript(string message) => requestId => $"gateway.show_message('{requestId}', '{cleanupMessage(message)}');";
-            public static Func<string, string> GetShowConfirmationScript(string message) => requestId => $"gateway.show_message_confirmation('{requestId}', '{cleanupMessage(message)}');";
-            public static Func<string, string> GetShowMenu(IEnumerable<string> options, string defaultOption) => requestId => $"gateway.show_menu('{requestId}', {JsonSerializer.Serialize(options)}, '{defaultOption}');";
-            public static Func<string, string> GetShowPrompt(PromptConfig config) => requestId => $"gateway.show_prompt('{requestId}', {JsonSerializer.Serialize(config)});";
+            public static Func<string, string> GetShowScript(string message) => requestId => $"gateway.on_message('{requestId}', '{cleanupMessage(message)}');";
+            public static Func<string, string> GetShowConfirmationScript(string message) => requestId => $"gateway.on_message_confirmation('{requestId}', '{cleanupMessage(message)}');";
+            public static Func<string, string> GetShowMenu(IEnumerable<string> options, string defaultOption) => requestId => $"gateway.on_menu('{requestId}', {JsonSerializer.Serialize(options)}, '{defaultOption}');";
+            public static Func<string, string> GetShowPrompt(PromptConfig config) => requestId => $"gateway.on_prompt('{requestId}', {JsonSerializer.Serialize(config)});";
             public static string GetCloseScript() => $"gateway.close()";
-            public static string GetOnLibInitScript() => $"gateway.on_lib_init()";
+            public static string GetSuccessScript() => $"gateway.success()";
+            public static string GetOnInitScript() => $"gateway.on_init()";
 
             private static string cleanupMessage(string message)
             {
@@ -41,22 +42,22 @@ namespace AppPDV
         private readonly HashSet<string> aborted = new HashSet<string>();
         private readonly Dictionary<string, string> confirmed = new Dictionary<string, string>();
 
-        public async Task<string?> ShowMessage(string message, int? timeoutToClose = null)
+        public async Task<string?> NotifyMessage(string message, int? timeoutToClose = null)
         {
             return await SetScript(Scripts.GetShowScript(message), timeoutToClose);
         }
 
-        public async Task<string?> ShowMessageWithConfirmation(string message, int? timeoutToClose = null)
+        public async Task<string?> NotifyMessageWithConfirmation(string message, int? timeoutToClose = null)
         {
             return await SetScript(Scripts.GetShowConfirmationScript(message), timeoutToClose);
         }
 
-        public async Task<string?> ShowMenu(IEnumerable<string> options, string defaultOption)
+        public async Task<string?> NotifyMenu(IEnumerable<string> options, string defaultOption)
         {
             return await SetScript(Scripts.GetShowMenu(options, defaultOption));
         }
 
-        public async Task<string?> ShowPrompt(PromptConfig config)
+        public async Task<string?> NotifyPrompt(PromptConfig config)
         {
             return await SetScript(Scripts.GetShowPrompt(config));
         }
@@ -82,7 +83,12 @@ namespace AppPDV
 
         public void NotifyInit()
         {
-            _ = ExecuteScript(Scripts.GetOnLibInitScript());
+            _ = ExecuteScript(Scripts.GetOnInitScript());
+        }
+
+        public void NotifySuccess()
+        {
+            _ = ExecuteScript(Scripts.GetSuccessScript());
         }
 
         private async Task<string?> SetScript(Func<string, string> scriptBuilder, int? timeoutToClose = null)
