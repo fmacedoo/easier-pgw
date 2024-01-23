@@ -26,28 +26,6 @@ namespace AppPDV
             webViewInteractionController = new WebViewInteractionController(webView);
         }
 
-        public void NotifyInit()
-        {
-            webViewInteractionController.NotifyInit();
-        }
-
-        public string?[] devices()
-        {
-            var devices = DeviceManagement.List();
-            Console.WriteLine(JsonSerializer.Serialize(devices));
-            return devices;
-        }
-
-        public void abort(string? requestId = null)
-        {
-            webViewInteractionController.Abort(requestId);
-        }
-
-        public void confirm(string requestId, string value)
-        {
-            webViewInteractionController.Confirm(requestId, value);
-        }
-
         private async Task DefaultMessageRaisingHandler(string message, int? timeoutToClose = null)
         {
             await webViewInteractionController.NotifyMessage(message, timeoutToClose);
@@ -74,6 +52,39 @@ namespace AppPDV
             return await webViewInteractionController.NotifyMenu(options, defaultOption);
         }
 
+        #region Interaction Methods
+
+        public void NotifyInit()
+        {
+            webViewInteractionController.NotifyInit();
+        }
+
+        public void abort(string? requestId = null)
+        {
+            webViewInteractionController.Abort(requestId);
+        }
+
+        public void confirm(string requestId, string value)
+        {
+            webViewInteractionController.Confirm(requestId, value);
+        }
+
+        #endregion
+
+        #region Data Methods
+
+        public string?[] devices()
+        {
+            Logger.Info("devices:");
+            var devices = DeviceManagement.List();
+            Logger.Debug(JsonSerializer.Serialize(devices));
+            return devices;
+        }
+
+        #endregion
+
+        #region PayGo Methods
+
         public void installation()
         {
             Task.Run(() => {
@@ -83,24 +94,22 @@ namespace AppPDV
             });
         }
 
-        public string operations()
+        public Operation[] operations()
         {
-            var result = new List<object>();
             var operations = pgw.GetOperations();
+            var result = new Operation[operations.Count];
+            var i = 0;
             foreach (var op in operations)
             {
-                result.Add(new
+                result[i++] = new Operation
                 {
                     bOperType = op.bOperType,
                     szText = op.szText,
                     szValue = op.szValue,
-                });
+                };
             }
 
-            var serialized = JsonSerializer.Serialize(result);
-            Console.WriteLine(serialized);
-
-            return serialized;
+            return result;
         }
 
         public void payment()
@@ -111,5 +120,14 @@ namespace AppPDV
                 if (result == E_PWRET.PWRET_OK) webViewInteractionController.NotifySuccess();
             });
         }
+
+        #endregion
+    }
+
+    public class Operation
+    {
+        public byte bOperType;
+        public string? szText;
+        public string? szValue;
     }
 }

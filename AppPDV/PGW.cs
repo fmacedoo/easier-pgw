@@ -55,7 +55,7 @@ namespace AppPDV
                     returnList.Add(operations[n]);
 
                     // Registra na janela de debug cada operação permitida
-                    Logger.Debug(string.Format("GetOperations: PW_Operations ({0},{1},{2}", operations[n].bOperType.ToString(),
+                    Logger.Debug(string.Format("GetOperations: PW_Operations ({0},{1},{2})", operations[n].bOperType.ToString(),
                         operations[n].szText, operations[n].szValue));
                 }
             }
