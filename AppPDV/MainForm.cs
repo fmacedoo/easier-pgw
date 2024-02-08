@@ -1,3 +1,4 @@
+using AppPDV.NFeClient;
 using Microsoft.Web.WebView2.WinForms;
 using PGW;
 
@@ -55,11 +56,13 @@ namespace AppPDV
                 webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
                 
                 _ = Task.Run(() => {
-                    Logger.Debug("Gateway init");
+                    Logger.Debug("Gateway/NFE init");
                     ProcessGateway pgw = new ProcessGateway(webView);
+                    NFeGateway nfe = new NFeGateway();
                     webView.Invoke(() => {
                         webView.CoreWebView2.AddHostObjectToScript("gateway", pgw);
-                        Logger.Debug("Gateway finished");
+                        webView.CoreWebView2.AddHostObjectToScript("nfe", nfe);
+                        Logger.Debug("Gateway/NFE finished");
                         pgw.NotifyInit();
                     });
                 });

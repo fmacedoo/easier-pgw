@@ -291,3 +291,4 @@ __pycache__/
 
 .env
 appsettings.json
+configuracao.xml
