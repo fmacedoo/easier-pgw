@@ -1,0 +1,3 @@
+netsh interface portproxy show all
+netsh interface portproxy add v4tov4 listenport=3000 listenaddress=127.0.0.1 connectport=3000 connectaddress=10.0.0.121
+netsh interface portproxy delete v4tov4 listenport=3000 listenaddress=127.0.0.1

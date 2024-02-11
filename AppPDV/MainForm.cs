@@ -56,15 +56,22 @@ namespace AppPDV
                 webView.CoreWebView2.Navigate(new Uri(indexPath).AbsoluteUri);
                 
                 _ = Task.Run(() => {
-                    Logger.Debug("Gateway/NFE init");
-                    ProcessGateway pgw = new ProcessGateway(webView);
-                    NFeGateway nfe = new NFeGateway();
-                    webView.Invoke(() => {
-                        webView.CoreWebView2.AddHostObjectToScript("gateway", pgw);
-                        webView.CoreWebView2.AddHostObjectToScript("nfe", nfe);
-                        Logger.Debug("Gateway/NFE finished");
-                        pgw.NotifyInit();
-                    });
+                    try
+                    {
+                        Logger.Debug("Gateway/NFE init");
+                        ProcessGateway pgw = new ProcessGateway(webView);
+                        NFeGateway nfe = new NFeGateway();
+                        webView.Invoke(() => {
+                            webView.CoreWebView2.AddHostObjectToScript("gateway", pgw);
+                            webView.CoreWebView2.AddHostObjectToScript("nfe", nfe);
+                            Logger.Debug("Gateway/NFE finished");
+                            pgw.NotifyInit();
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Debug($"Error on Gateway/NFE init:" + e.Message);
+                    }
                 });
 
                 Logger.Debug("Webview finished");
