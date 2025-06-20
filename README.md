@@ -2,7 +2,7 @@
 
 Uma implementação simplificada e orientada a eventos para facilitar o uso da biblioteca Pay&Go Web em aplicações .NET, abstraindo a complexidade da comunicação direta com a DLL nativa do Windows.
 
-## 📋 Sobre
+## Sobre
 
 EasierPGW é um wrapper C# que simplifica drasticamente o uso da biblioteca Pay&Go Web (PGWebLib.dll), transformando o complexo fluxo de funções nativas em uma interface orientada a eventos, intuitiva e fácil de usar.
 
@@ -15,7 +15,7 @@ A biblioteca Pay&Go Web original requer:
 - Controle manual de pendências e confirmações de transação
 - Implementação específica para cada tipo de captura de dados
 
-## 🎯 Características Principais
+## Características Principais
 
 ### Arquitetura Orientada a Eventos
 - **Interface Simples**: Um único ponto de entrada (`PGW` class) com eventos para interação
@@ -32,7 +32,7 @@ A biblioteca Pay&Go Web original requer:
 - **Recovery Resiliente**: Tratamento automático de falhas e recuperação de transações
 - **Logging Integrado**: Sistema de log detalhado para debugging e auditoria
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 ### Camadas da Aplicação
 
@@ -77,7 +77,7 @@ A biblioteca Pay&Go Web original requer:
 - Marshalling automático com LayoutKind.Sequential
 - Tipos seguros para operações e parâmetros
 
-## 🚀 Como Usar
+## Como Usar
 
 ### Inicialização
 ```csharp
@@ -123,7 +123,7 @@ var saleResult = pgw.Operation(E_PWOPER.PWOPER_SALE);
 var operations = pgw.GetOperations();
 ```
 
-## 🔧 Mapeamento de Funcionalidades
+## Mapeamento de Funcionalidades
 
 ### Função Original → EasierPGW
 
@@ -146,7 +146,7 @@ var operations = pgw.GetOperations();
 | `PWDAT_DSPCHECKOUT` | `Interactions` | Exibição de mensagens |
 | `PWDAT_DSPQRCODE` | `Interactions` | QR Code (implementação pendente) |
 
-## 🔄 Fluxo de Transação Simplificado
+## Fluxo de Transação Simplificado
 
 ### Biblioteca Original (Complexa)
 ```csharp
@@ -189,7 +189,7 @@ var result = pgw.Operation(E_PWOPER.PWOPER_SALE);
 // Os eventos são disparados automaticamente conforme necessário
 ```
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 EasierPGW/
@@ -207,14 +207,14 @@ EasierPGW/
 └── PGWebLib.dll               # Biblioteca nativa
 ```
 
-## 🛠️ Pré-requisitos
+## Pré-requisitos
 
 - .NET Framework 4.7.2+ ou .NET Core 3.1+
 - Windows (biblioteca nativa requer Windows)
 - PGWebLib.dll (incluída no projeto)
 - Dispositivo PIN-pad compatível (para operações com cartão)
 
-## 🚀 Execução
+## Execução
 
 ### Biblioteca Principal
 
@@ -232,7 +232,7 @@ Para executar os testes que demonstram a funcionalidade:
 dotnet run --project EasierPGW.Tests
 ```
 
-## 🧪 Testes
+## Testes
 
 O projeto inclui um conjunto abrangente de testes que demonstram:
 
@@ -270,26 +270,26 @@ dotnet build
 === EasierPGW Tests ===
 Testing Pay&Go Web library wrapper event handlers with simulated scenarios
 
-🧪 Test 1: Event Handlers
-📢 Testing Message Handler:
-📢 MESSAGE: Transação processada com sucesso
-❓ Testing Confirmation Handler:
-❓ CONFIRMATION: Confirma a operação de venda?
-📝 Testing Input Handler:
-📝 INPUT REQUEST: Digite o valor da transação
-📋 Testing Menu Handler:
-📋 MENU SELECTION: [Cartão de Crédito, Cartão de Débito, Voucher]
+Test 1: Event Handlers
+Testing Message Handler:
+MESSAGE: Transação processada com sucesso
+Testing Confirmation Handler:
+CONFIRMATION: Confirma a operação de venda?
+Testing Input Handler:
+INPUT REQUEST: Digite o valor da transação
+Testing Menu Handler:
+MENU SELECTION: [Cartão de Crédito, Cartão de Débito, Voucher]
 
-🧪 Test 2: Mock Integration Demonstration
-🔧 Mock Interop Operations:
+Test 2: Mock Integration Demonstration
+Mock Interop Operations:
 [MOCK] PW_iInit: /tmp/test - Result: PWRET_OK
 [MOCK] PW_iNewTransac: PWOPER_SALE - Result: PWRET_OK
 
-🧪 Test 3: Configuration Validation
-✓ Config: PWINFO_TOTAMNT - Valor da transação (Numeric)
-✓ Operation: PWOPER_SALE (33)
+Test 3: Configuration Validation
+Config: PWINFO_TOTAMNT - Valor da transação (Numeric)
+Operation: PWOPER_SALE (33)
 
-✅ All tests completed successfully!
+All tests completed successfully!
 ```
 
 ### Estrutura dos Testes
@@ -309,7 +309,7 @@ EasierPGW.Tests/
 - **Demonstração**: Veja como implementar os event handlers
 - **Validação**: Confirme que sua integração está correta
 
-## 📝 Exemplos de Uso
+## Exemplos de Uso
 
 ### Exemplo Básico - Venda
 ```csharp
@@ -329,14 +329,14 @@ class Program {
     }
 
     static void ShowMessage(string message, int? timeout) {
-        Console.WriteLine($"📢 {message}");
+        Console.WriteLine($"MESSAGE: {message}");
         if (timeout.HasValue) {
             Thread.Sleep(timeout.Value);
         }
     }
 
     static async Task<PromptConfirmationResult> ConfirmAction(string message, int? timeout) {
-        Console.WriteLine($"❓ {message} (S/N)");
+        Console.WriteLine($"CONFIRMATION: {message} (S/N)");
         var key = Console.ReadKey();
         return key.Key == ConsoleKey.S ? 
             PromptConfirmationResult.Confirm : 
@@ -344,7 +344,7 @@ class Program {
     }
 
     static async Task<string> GetUserInput(PromptConfig config) {
-        Console.WriteLine($"📝 {config.Message}");
+        Console.WriteLine($"INPUT: {config.Message}");
         if (config.InputType == PromptFieldType.Password) {
             return ReadPassword();
         }
@@ -352,7 +352,7 @@ class Program {
     }
 
     static async Task<string> SelectFromMenu(List<string> options, string defaultOption) {
-        Console.WriteLine("📋 Selecione uma opção:");
+        Console.WriteLine("MENU: Selecione uma opção:");
         for (int i = 0; i < options.Count; i++) {
             Console.WriteLine($"  {i + 1}. {options[i]}");
         }
@@ -366,7 +366,7 @@ class Program {
 }
 ```
 
-## 🔍 Debugging e Logs
+## Debugging e Logs
 
 O EasierPGW inclui um sistema de logging detalhado que registra:
 - Todas as chamadas para a biblioteca nativa
@@ -379,7 +379,7 @@ O EasierPGW inclui um sistema de logging detalhado que registra:
 // %CommonApplicationData%\PGWebLib\
 ```
 
-## ⚠️ Tratamento de Erros
+## Tratamento de Erros
 
 ### Códigos de Retorno
 O wrapper preserva todos os códigos de retorno da biblioteca original (enum `E_PWRET`), mas adiciona tratamento automático para:
@@ -397,17 +397,17 @@ O wrapper preserva todos os códigos de retorno da biblioteca original (enum `E_
 // 4. Gerencia estados de transação de forma consistente
 ```
 
-## 🎯 Estratégia de Testes
+## Estratégia de Testes
 
 ### Abordagem Híbrida
 
 O EasierPGW oferece duas abordagens para testes:
 
 #### 1. **Testes com Mock (EasierPGW.Tests)**
-- ✅ **Sem dependências**: Não requer DLL ou hardware
-- ✅ **Rápidos**: Execução instantânea para CI/CD
-- ✅ **Determinísticos**: Resultados previsíveis
-- ✅ **Cobertura completa**: Testa todos os cenários de erro
+- **Sem dependências**: Não requer DLL ou hardware
+- **Rápidos**: Execução instantânea para CI/CD
+- **Determinísticos**: Resultados previsíveis
+- **Cobertura completa**: Testa todos os cenários de erro
 
 ```bash
 # Execução rápida para desenvolvimento
@@ -415,9 +415,9 @@ dotnet run --project EasierPGW.Tests
 ```
 
 #### 2. **Testes de Integração (Hardware Real)**
-- ✅ **Validação real**: Testa com hardware e DLL verdadeiros
-- ✅ **Cenários reais**: Comportamento idêntico ao ambiente de produção
-- ⚠️ **Requer hardware**: PIN-pad e configuração adequada
+- **Validação real**: Testa com hardware e DLL verdadeiros
+- **Cenários reais**: Comportamento idêntico ao ambiente de produção
+- **Requer hardware**: PIN-pad e configuração adequada
 
 ```csharp
 // Para testes de integração, use a classe PGW diretamente
@@ -442,7 +442,7 @@ var result = pgw.Operation(E_PWOPER.PWOPER_SALE);
 2. Configure testes de integração em ambiente dedicado
 3. Use testes mock para validação de pull requests
 
-## 🤝 Contribuindo
+## Contribuindo
 
 Para contribuir com o projeto:
 
@@ -452,17 +452,17 @@ Para contribuir com o projeto:
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 📄 Licença
+## Licença
 
 Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 🙏 Agradecimentos
+## Agradecimentos
 
 - Equipe Pay&Go Web pela biblioteca original
 - Comunidade .NET pela documentação sobre P/Invoke
 - Contribuidores que ajudaram a testar e melhorar a implementação
 
-## 📞 Suporte
+## Suporte
 
 Para dúvidas sobre a implementação EasierPGW:
 - Abra uma [Issue](https://github.com/seu-usuario/easier-pgw/issues)

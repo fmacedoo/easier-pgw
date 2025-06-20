@@ -21,11 +21,11 @@ class Program
             // Test 3: Configuration Validation
             await TestConfigurationValidation();
 
-            Console.WriteLine("\n✅ All tests completed successfully!");
+            Console.WriteLine("\nAll tests completed successfully!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"\n❌ Test failed: {ex.Message}");
+            Console.WriteLine($"\nTest failed: {ex.Message}");
             Console.WriteLine(ex.StackTrace);
         }
 
@@ -34,23 +34,23 @@ class Program
 
     static async Task TestEventHandlers()
     {
-        Console.WriteLine("🧪 Test 1: Event Handlers");
+        Console.WriteLine("Test 1: Event Handlers");
         Console.WriteLine("Testing the event handler implementations from README examples...");
 
         // Simulate various scenarios that would trigger event handlers
         
         // Test message handler
-        Console.WriteLine("\n📢 Testing Message Handler:");
+        Console.WriteLine("\nTesting Message Handler:");
         await ShowMessage("Transação processada com sucesso", 1000);
         await ShowMessage("Aguarde a confirmação no PIN-pad", null);
 
         // Test confirmation handler
-        Console.WriteLine("\n❓ Testing Confirmation Handler:");
+        Console.WriteLine("\nTesting Confirmation Handler:");
         var confirmResult1 = await ConfirmAction("Confirma a operação de venda?", 5000);
         var confirmResult2 = await ConfirmAction("Deseja imprimir o comprovante?", null);
 
         // Test input handler
-        Console.WriteLine("\n📝 Testing Input Handler:");
+        Console.WriteLine("\nTesting Input Handler:");
         var inputConfig1 = new PromptConfig
         {
             Identifier = E_PWINFO.PWINFO_TOTAMNT,
@@ -71,20 +71,20 @@ class Program
         var inputResult2 = await GetUserInput(inputConfig2);
 
         // Test menu handler
-        Console.WriteLine("\n📋 Testing Menu Handler:");
+        Console.WriteLine("\nTesting Menu Handler:");
         var menuOptions = new List<string> { "Cartão de Crédito", "Cartão de Débito", "Voucher" };
         var menuResult = await SelectFromMenu(menuOptions, menuOptions[0]);
 
-        Console.WriteLine("✅ Event handler tests completed successfully");
+        Console.WriteLine("Event handler tests completed successfully");
         Console.WriteLine();
     }
 
     static async Task TestMockIntegration()
     {
-        Console.WriteLine("🧪 Test 2: Mock Integration Demonstration");
+        Console.WriteLine("Test 2: Mock Integration Demonstration");
         Console.WriteLine("Demonstrating how mock implementations work...");
 
-        Console.WriteLine("\n🔧 Mock Interop Operations:");
+        Console.WriteLine("\nMock Interop Operations:");
         MockInterop.Reset();
         
         // Simulate initialization
@@ -110,13 +110,13 @@ class Program
         var getResultCode = MockInterop.PW_iGetResult((short)E_PWINFO.PWINFO_RESULTMSG, resultBuilder, 1000);
         Console.WriteLine($"Mock Get Result: {(E_PWRET)getResultCode} - '{resultBuilder}'");
 
-        Console.WriteLine("✅ Mock integration demonstration completed");
+        Console.WriteLine("Mock integration demonstration completed");
         Console.WriteLine();
     }
 
     static async Task TestConfigurationValidation()
     {
-        Console.WriteLine("🧪 Test 3: Configuration Validation");
+        Console.WriteLine("Test 3: Configuration Validation");
         Console.WriteLine("Testing configuration objects and enums...");
 
         // Test PromptConfig creation
@@ -147,11 +147,11 @@ class Program
 
         foreach (var config in configs)
         {
-            Console.WriteLine($"✓ Config: {config.Identifier} - {config.Message} ({config.InputType})");
+            Console.WriteLine($"Config: {config.Identifier} - {config.Message} ({config.InputType})");
         }
 
         // Test enum values
-        Console.WriteLine("\n📋 Available Operations:");
+        Console.WriteLine("\nAvailable Operations:");
         var operations = new[]
         {
             E_PWOPER.PWOPER_INSTALL,
@@ -162,17 +162,17 @@ class Program
 
         foreach (var op in operations)
         {
-            Console.WriteLine($"✓ Operation: {op} ({(int)op})");
+            Console.WriteLine($"Operation: {op} ({(int)op})");
         }
 
-        Console.WriteLine("✅ Configuration validation completed");
+        Console.WriteLine("Configuration validation completed");
         Console.WriteLine();
     }
 
     // Event Handlers (exactly as shown in README)
     static async Task ShowMessage(string message, int? timeout)
     {
-        Console.WriteLine($"📢 MESSAGE: {message}");
+        Console.WriteLine($"MESSAGE: {message}");
         if (timeout.HasValue)
         {
             Console.WriteLine($"   (Timeout: {timeout}ms)");
@@ -182,19 +182,19 @@ class Program
 
     static async Task<PromptConfirmationResult> ConfirmAction(string message, int? timeout)
     {
-        Console.WriteLine($"❓ CONFIRMATION: {message}");
+        Console.WriteLine($"CONFIRMATION: {message}");
         Console.WriteLine("   (Auto-confirming for test - would normally prompt user)");
         
         await Task.Delay(100); // Simulate user thinking time
         
         var result = PromptConfirmationResult.OK;
-        Console.WriteLine($"   → User choice: {result}");
+        Console.WriteLine($"   User choice: {result}");
         return result;
     }
 
     static async Task<string?> GetUserInput(PromptConfig config)
     {
-        Console.WriteLine($"📝 INPUT REQUEST: {config.Message}");
+        Console.WriteLine($"INPUT REQUEST: {config.Message}");
         Console.WriteLine($"   Type: {config.InputType}");
         Console.WriteLine($"   Max Length: {config.MaxLength}");
         
@@ -213,7 +213,7 @@ class Program
             _ => GenerateSimulatedInput(config)
         };
 
-        Console.WriteLine($"   → Simulated input: {(config.InputType == PromptFieldType.Password ? "****" : simulatedInput)}");
+        Console.WriteLine($"   Simulated input: {(config.InputType == PromptFieldType.Password ? "****" : simulatedInput)}");
         return simulatedInput;
     }
 
@@ -231,7 +231,7 @@ class Program
 
     static async Task<string?> SelectFromMenu(IEnumerable<string> options, string defaultOption)
     {
-        Console.WriteLine("📋 MENU SELECTION:");
+        Console.WriteLine("MENU SELECTION:");
         var optionsList = options.ToList();
         for (int i = 0; i < optionsList.Count; i++)
         {
@@ -242,7 +242,7 @@ class Program
         await Task.Delay(100); // Simulate selection time
         
         string selected = optionsList.Count > 0 ? optionsList[0] : defaultOption;
-        Console.WriteLine($"   → Selected: {selected}");
+        Console.WriteLine($"   Selected: {selected}");
         return selected;
     }
 }
