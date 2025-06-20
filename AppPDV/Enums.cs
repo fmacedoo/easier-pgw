@@ -8,9 +8,6 @@ namespace PGW
 {
 	public class Enums
 	{
-
-
-
 		//==========================================================================================
 		//  Tipos de evento retornados pelo PIN-pad
 		//==========================================================================================
@@ -18,16 +15,16 @@ namespace PGW
 		public enum E_PWPPEVT : uint
 		{
 			PWPPEVT_NONE = 0x00,
-			PWPPEVT_MAGSTRIPE = 0x01, // Foi passado um cartão magnético. 
-			PWPPEVT_ICC = 0x02, //Foi detectada a presença de um cartão com chip. 
-			PWPPEVT_CTLS = 0x03, //Foi detectada a presença de um cartão sem contato. 
-			PWPPEVT_KEYCONF = 0x11, //Foi pressionada a tecla [OK]. 
-			PWPPEVT_KEYBACKSP = 0x12, //Foi pressionada a tecla [CORRIGE]. 
-			PWPPEVT_KEYCANC = 0x13, //Foi pressionada a tecla [CANCELA]. 
-			PWPPEVT_KEYF1 = 0x21, //Foi pressionada a tecla [F1]. 
-			PWPPEVT_KEYF2 = 0x22, //Foi pressionada a tecla [F2]. 
-			PWPPEVT_KEYF3 = 0x23, //Foi pressionada a tecla [F3]. 
-			PWPPEVT_KEYF4 = 0x24 //Foi pressionada a tecla [F4]. 
+			PWPPEVT_MAGSTRIPE = 0x01, // Foi passado um cartão magnético.
+			PWPPEVT_ICC = 0x02, //Foi detectada a presença de um cartão com chip.
+			PWPPEVT_CTLS = 0x03, //Foi detectada a presença de um cartão sem contato.
+			PWPPEVT_KEYCONF = 0x11, //Foi pressionada a tecla [OK].
+			PWPPEVT_KEYBACKSP = 0x12, //Foi pressionada a tecla [CORRIGE].
+			PWPPEVT_KEYCANC = 0x13, //Foi pressionada a tecla [CANCELA].
+			PWPPEVT_KEYF1 = 0x21, //Foi pressionada a tecla [F1].
+			PWPPEVT_KEYF2 = 0x22, //Foi pressionada a tecla [F2].
+			PWPPEVT_KEYF3 = 0x23, //Foi pressionada a tecla [F3].
+			PWPPEVT_KEYF4 = 0x24 //Foi pressionada a tecla [F4].
 		}
 
 		//=========================================================================================
@@ -46,7 +43,7 @@ namespace PGW
 
 		//==========================================================================================
 		//  Tabela de Códigos de retorno das transações
-		//==========================================================================================   
+		//==========================================================================================
 		public enum E_PWOPER : int
 		{
 			PWOPER_NULL = 0,         // Testa comunicação com a infraestrutura do Pay&Go Web
@@ -113,7 +110,7 @@ namespace PGW
 			PWCNF_REV_ABORT = 274737,		// A transação não foi finalizada, foi interrompida durante a captura de dados.*/
 			PWCNF_REV_OTHER_AUT = 471345,	// A transação foi desfeita a pedido da Automação, por um outro motivo não previsto.*/
 			PWCNF_REV_PWR_AUT = 536881,		// A transação foi desfeita automaticamente pela Automação, devido a uma queda de energia (reinício abrupto do sistema).*/
-			PWCNF_REV_FISC_AUT = 602417		// A transação foi desfeita automaticamente pela Automação, devido a uma falha de registro no sistema fiscal (impressora S@T, on-line, etc.).*/					
+			PWCNF_REV_FISC_AUT = 602417		// A transação foi desfeita automaticamente pela Automação, devido a uma falha de registro no sistema fiscal (impressora S@T, on-line, etc.).*/
 		}
 
 		//==========================================================================================
@@ -204,7 +201,7 @@ namespace PGW
 			PWINFO_SERVERPND = 32523,    // Indica se o ponto de captura possui alguma pendência a ser resolvida com o Pay&Go Web: 0: não possui pendência; 1: possui pendência
 			PWINFO_AUTHPOSQRCODE = 0x1F77, // QRcode a ser exibido no display da automação
 			PWINFO_PPINFO = 0x7F15,    // Informações do PIN-pad conectado, seguindo o padrão posição/informação abaixo: 001-020 / Nome do fabricante do PIN-pad. 021-039 / Modelo/versão do hardware. 040 / Se o PIN-pad suporta cartão com chip sem contato, este campo deve conter a letra “C”, caso contrário um espaço em branco. 041-060 / Versão do software básico/firmware. 061-064 / Versão da especificação, no formato “V.VV”. 065-080 / Versão da aplicação básica, no formato “VVV.VV AAMMDD” (com 3 espaços à direita). 081-100 / Número de série do PIN-pad (com espaços à direita)
-			PWINFO_DSPQRPREF = 0x7F50,	// Preferência do local de exibição do QRcode 1:PINpad 2:Display da automação 
+			PWINFO_DSPQRPREF = 0x7F50,	// Preferência do local de exibição do QRcode 1:PINpad 2:Display da automação
 			PWINFO_DUEAMNT = 0xBF06,   // Valor devido pelo usuário, considerando PWINFO_CURREXP, já deduzido em PWINFO_TOTAMNT
 			PWINFO_READJUSTEDAMNT = 0xBF09 // Valor total da transação reajustado, este campo será utilizado caso o autorizador, por alguma regra de negócio específica dele, resolva alterar o valor total que foi solicitado para a transação
 
@@ -268,9 +265,9 @@ namespace PGW
 
 		public enum E_PWDAT
 		{
-			PWDAT_MENU = 1,   // menu de opções  
-			PWDAT_TYPED = 2,   // entrada digitada   
-			PWDAT_CARDINF = 3,   // dados de cartão   
+			PWDAT_MENU = 1,   // menu de opções
+			PWDAT_TYPED = 2,   // entrada digitada
+			PWDAT_CARDINF = 3,   // dados de cartão
 			PWDAT_PPENTRY = 5,   // entrada digitada no PIN-pad
 			PWDAT_PPENCPIN = 6,   // senha criptografada
 			PWDAT_CARDOFF = 9,   // processamento off-line de cartão com chip
@@ -314,7 +311,7 @@ namespace PGW
 		}
 
 		public enum E_PWTypeValid : byte
-		{	
+		{
 			NONE		 = 0,
 			NOTNULL      = 1,
 			MODE10       = 2,

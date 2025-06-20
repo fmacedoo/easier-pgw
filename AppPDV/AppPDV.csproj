@@ -2,10 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0-windows</TargetFramework>
-    <PlatformTarget>x64</PlatformTarget>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableWindowsTargeting>True</EnableWindowsTargeting>
     <DisableWinExeOutputInference>false</DisableWinExeOutputInference>
