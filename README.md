@@ -1,3 +1,3 @@
-### Run the AppPDV application
+### Run the EasierPGW application
 
-`dotnet run --project AppPDV`
+`dotnet run --project EasierPGW`

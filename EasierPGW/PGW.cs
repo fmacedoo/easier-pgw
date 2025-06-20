@@ -3,7 +3,7 @@ using PGW.Dll;
 using static PGW.CustomObjects;
 using static PGW.Enums;
 
-namespace AppPDV
+namespace EasierPGW
 {
     public class PGW
     {

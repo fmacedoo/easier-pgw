@@ -1,4 +1,4 @@
-namespace AppPDV
+namespace EasierPGW
 {
     public enum PromptConfirmationResult
     {

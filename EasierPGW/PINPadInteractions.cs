@@ -1,7 +1,7 @@
 using PGW.Dll;
 using static PGW.Enums;
 
-namespace AppPDV
+namespace EasierPGW
 {
     public class PINPadInteractions
     {

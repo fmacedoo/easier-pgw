@@ -1,7 +1,7 @@
 using static PGW.Enums;
 using System.Text.Json.Serialization;
 
-namespace AppPDV
+namespace EasierPGW
 {
     public enum PromptFieldType
     {

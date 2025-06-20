@@ -1,6 +1,6 @@
 using System.Management;
 
-namespace AppPDV
+namespace EasierPGW
 {
     public class DeviceManagement
     {

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace AppPDV
+namespace EasierPGW
 {
     public class AppSettings
     {
